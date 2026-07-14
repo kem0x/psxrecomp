@@ -14,6 +14,7 @@ SDL_AudioDeviceID psx_web_audio_open_device(
 void psx_web_audio_pause_device(SDL_AudioDeviceID device, int pause_on);
 int psx_web_audio_queue(SDL_AudioDeviceID device, const void *data, Uint32 len);
 Uint32 psx_web_audio_queued_size(SDL_AudioDeviceID device);
+Uint32 psx_web_audio_async_drop_count(void);
 void psx_web_audio_clear(SDL_AudioDeviceID device);
 void psx_web_audio_close(SDL_AudioDeviceID device);
 void psx_web_audio_lock(SDL_AudioDeviceID device);

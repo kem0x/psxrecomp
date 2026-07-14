@@ -157,11 +157,6 @@ static int ensure_output_capacity(uint32_t bytes) {
     return 1;
 }
 
-static void append_byte(uint8_t value) {
-    if (!ensure_output_capacity(mdec.output_size + 1u)) return;
-    mdec.output[mdec.output_size++] = value;
-}
-
 static uint8_t input_byte(uint32_t byte_index) {
     uint16_t hw = mdec.input[byte_index >> 1];
     return (byte_index & 1u) ? (uint8_t)(hw >> 8) : (uint8_t)hw;
@@ -300,7 +295,7 @@ static int rgb_to_555_chan(uint8_t c) {
     return v;
 }
 
-static void append_rgb_pixel(int y, int cr, int cb) {
+static inline void append_rgb_pixel(uint8_t **dst, int y, int cr, int cb) {
     /* Beetle YCbCr_to_RGB (mdec.cpp:293-304): /256 coeffs (359,-88/-183,454),
      * +0x80 rounding, the reduced-precision GREEN mask (-88*cb &~0x1F, -183*cr
      * &~0x07) — the hardware quirk our old /1024 path lacked, the main green-hue
@@ -319,34 +314,42 @@ static void append_rgb_pixel(int y, int cr, int cb) {
         uint16_t pixel_xor = (uint16_t)((mdec.output_bit15 ? 0x8000u : 0u)
                                         | (mdec.output_signed ? 0x4210u : 0u));
         packed ^= pixel_xor;
-        append_byte((uint8_t)packed);
-        append_byte((uint8_t)(packed >> 8));
+        *(*dst)++ = (uint8_t)packed;
+        *(*dst)++ = (uint8_t)(packed >> 8);
     } else {
         /* 24bpp (mdec.cpp:370-393): rgb_xor = signed ? 0x80 : 0x00. */
         uint8_t rgb_xor = mdec.output_signed ? 0x80u : 0x00u;
-        append_byte((uint8_t)(ru ^ rgb_xor));
-        append_byte((uint8_t)(gu ^ rgb_xor));
-        append_byte((uint8_t)(bu ^ rgb_xor));
+        *(*dst)++ = (uint8_t)(ru ^ rgb_xor);
+        *(*dst)++ = (uint8_t)(gu ^ rgb_xor);
+        *(*dst)++ = (uint8_t)(bu ^ rgb_xor);
     }
 }
 
 static void append_luma_block(const int16_t *yblk) {
+    if (!ensure_output_capacity(mdec.output_size + 64u)) return;
+    uint8_t *dst = mdec.output + mdec.output_size;
     for (int i = 0; i < 64; i++) {
-        append_byte(to_output_u8(yblk[i]));
+        *dst++ = to_output_u8(yblk[i]);
     }
+    mdec.output_size += 64u;
 }
 
 static void append_color_macroblock(const int16_t *crblk, const int16_t *cbblk,
                                     const int16_t yblk[4][64]) {
+    const uint32_t bytes = 16u * 16u * (mdec.output_depth == 3 ? 2u : 3u);
+    if (!ensure_output_capacity(mdec.output_size + bytes)) return;
+    uint8_t *dst = mdec.output + mdec.output_size;
     for (int py = 0; py < 16; py++) {
         for (int px = 0; px < 16; px++) {
             int y_index = (py >= 8 ? 2 : 0) + (px >= 8 ? 1 : 0);
             int lx = px & 7;
             int ly = py & 7;
             int chroma = (px >> 1) + (py >> 1) * 8;
-            append_rgb_pixel(yblk[y_index][lx + ly * 8], crblk[chroma], cbblk[chroma]);
+            append_rgb_pixel(&dst, yblk[y_index][lx + ly * 8],
+                             crblk[chroma], cbblk[chroma]);
         }
     }
+    mdec.output_size += bytes;
 }
 
 /* Monotonic count of decode invocations — the frontend FMV detector samples

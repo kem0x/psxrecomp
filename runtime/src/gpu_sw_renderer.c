@@ -863,11 +863,12 @@ static void raster_gouraud_triangle(const RTarget *t,
         int ex = min_i(xb, t->cx2 + 1);
         int span = xb - xa;
 
+        float inv_span = span > 0 ? 1.0f / (float)span : 0.0f;
+        float tf = (float)(sx - xa) * inv_span;
         for (int x = sx; x < ex; x++) {
             /* Interpolate color across the scanline */
             uint16_t color;
             if (span > 0) {
-                float tf = (float)(x - xa) / (float)span;
                 int r = ra + (int)((float)(rb - ra) * tf);
                 int g = ga + (int)((float)(gb - ga) * tf);
                 int b = ba + (int)((float)(bb - ba) * tf);
@@ -879,6 +880,7 @@ static void raster_gouraud_triangle(const RTarget *t,
                 color = (uint16_t)(ra | (ga << 5) | (ba << 10));
             }
             put_opaque(t, x, y, color);
+            tf += inv_span;
         }
     }
 }
@@ -996,16 +998,18 @@ static void raster_textured_triangle(const RTarget *t,
 
         int sx = max_i(xa, t->cx1);
         int ex = min_i(xb, t->cx2 + 1);
+        const float inv_span = 1.0f / (float)span;
+        float t_val = (float)(sx - xa) * inv_span;
 
         for (int x = sx; x < ex; x++) {
-            float t_val = (float)(x - xa) / (float)span;
             float fu = ua + (ub - ua) * t_val;
             float fv = va + (vb - va) * t_val;
             if (perspective) {
                 float q = qa + (qb - qa) * t_val;
                 if (q > 1.0e-12f) {
-                    fu = (uqa + (uqb - uqa) * t_val) / q;
-                    fv = (vqa + (vqb - vqa) * t_val) / q;
+                    const float inv_q = 1.0f / q;
+                    fu = (uqa + (uqb - uqa) * t_val) * inv_q;
+                    fv = (vqa + (vqb - vqa) * t_val) * inv_q;
                 }
             }
 
@@ -1013,6 +1017,7 @@ static void raster_textured_triangle(const RTarget *t,
                 ? texel_fetch_bilinear(fu, fv, texpage, clut_x, clut_y)
                 : texel_fetch((int)fu & 0xFF, (int)fv & 0xFF, texpage, clut_x, clut_y);
             put_textured(t, x, y, texel, g_mod_r, g_mod_g, g_mod_b, g_raw_texture);
+            t_val += inv_span;
         }
     }
 }
@@ -1169,16 +1174,18 @@ static void raster_shaded_textured_triangle(const RTarget *t,
 
         int sx = max_i(xa, t->cx1);
         int ex = min_i(xb, t->cx2 + 1);
+        const float inv_span = 1.0f / (float)span;
+        float t_val = (float)(sx - xa) * inv_span;
 
         for (int x = sx; x < ex; x++) {
-            float t_val = (float)(x - xa) / (float)span;
             float fu = ua + (ub - ua) * t_val;
             float fv = va + (vb - va) * t_val;
             if (perspective) {
                 float q = qa + (qb - qa) * t_val;
                 if (q > 1.0e-12f) {
-                    fu = (uqa + (uqb - uqa) * t_val) / q;
-                    fv = (vqa + (vqb - vqa) * t_val) / q;
+                    const float inv_q = 1.0f / q;
+                    fu = (uqa + (uqb - uqa) * t_val) * inv_q;
+                    fv = (vqa + (vqb - vqa) * t_val) * inv_q;
                 }
             }
             int mr = (int)(ra + (rb - ra) * t_val);
@@ -1192,6 +1199,7 @@ static void raster_shaded_textured_triangle(const RTarget *t,
                 ? texel_fetch_bilinear(fu, fv, texpage, clut_x, clut_y)
                 : texel_fetch((int)fu & 0xFF, (int)fv & 0xFF, texpage, clut_x, clut_y);
             put_textured(t, x, y, texel, mr, mg, mb, raw_texture);
+            t_val += inv_span;
         }
     }
 }

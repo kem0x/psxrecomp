@@ -24,6 +24,8 @@ uint32_t frame_pacing_sleep_ms(uint64_t now, uint64_t deadline,
 
 #ifndef FRAME_PACING_PURE_ONLY
 
+#define FRAME_PACER_CATCHUP_MAX_PERIODS 12u
+
 /* Bounded catch-up window, in periods. A transient stall (heavy frame, CD
  * burst) leaves next_deadline in the past; KEEPING that debt and running
  * unpaced until it is repaid preserves the long-term rate at exactly one
@@ -34,8 +36,10 @@ uint32_t frame_pacing_sleep_ms(uint64_t now, uint64_t deadline,
  * target = -0.4% chronic audio underrun). Only debt beyond this window —
  * sustained sub-realtime emulation, not a hiccup — is forgiven, else the
  * pacer would demand unbounded catch-up. */
-#define FRAME_PACER_CATCHUP_MAX_PERIODS 8u
-
+/* Browser scheduling and streamed transitions can briefly stall beyond the
+ * old eight-frame (133 ms) window. Keep up to 12 frames (200 ms at 60 Hz) of
+ * finite debt so one transient does not permanently starve audio or lower the
+ * long-term presentation rate. Longer stalls still re-anchor normally. */
 void frame_pacer_wait(FramePacer *p, double period_ms) {
     uint64_t freq = SDL_GetPerformanceFrequency();
     uint64_t period = (uint64_t)((double)freq * (period_ms / 1000.0));

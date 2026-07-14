@@ -283,6 +283,14 @@ static uint32_t*     sdl_pixel_buf = nullptr;
  * of visual latency, but never changes guest execution or SPU timing. */
 static std::atomic<int> g_smooth_60fps{0};
 
+#if defined(PSX_WEB)
+/* Lightweight counters for the browser's opt-in performance HUD. They expose
+ * rates only; no game state or user data leaves the page. */
+static std::atomic<uint64_t> g_web_perf_vblanks{0};
+static std::atomic<uint64_t> g_web_perf_pacer_wait_us{0};
+static std::atomic<uint64_t> g_web_perf_present_us{0};
+#endif
+
 struct Smooth60State {
     std::vector<uint32_t> previous_source;
     uint64_t source_hash = 0;
@@ -1465,6 +1473,18 @@ extern "C" EMSCRIPTEN_KEEPALIVE uint32_t psx_web_geometry_correction_hits(void) 
     return gte_geometry_correction_hits();
 }
 
+extern "C" EMSCRIPTEN_KEEPALIVE double psx_web_perf_vblanks(void) {
+    return (double)g_web_perf_vblanks.load(std::memory_order_relaxed);
+}
+
+extern "C" EMSCRIPTEN_KEEPALIVE double psx_web_perf_pacer_wait_us(void) {
+    return (double)g_web_perf_pacer_wait_us.load(std::memory_order_relaxed);
+}
+
+extern "C" EMSCRIPTEN_KEEPALIVE double psx_web_perf_present_us(void) {
+    return (double)g_web_perf_present_us.load(std::memory_order_relaxed);
+}
+
 extern "C" EMSCRIPTEN_KEEPALIVE void psx_web_set_keybind(uint32_t button,
                                                           uint32_t scancode) {
     if (button >= (uint32_t)PSX_KB_COUNT || scancode >= (uint32_t)SDL_NUM_SCANCODES)
@@ -2365,6 +2385,7 @@ static void sdl_vblank_present(void) {
         SDL_Delay(16);
     }
     starvation_watchdog_heartbeat();
+    g_web_perf_vblanks.fetch_add(1, std::memory_order_relaxed);
     /* SLPS-01762 lives/people counter. Pinning the live halfword is equivalent
      * to the established 80095770 0063 Action Replay code and does not modify
      * the memory-card profile. */
@@ -2622,7 +2643,19 @@ static void sdl_vblank_present(void) {
      * hard freeze). */
     {
         static FramePacer pacer = { 0 };
+#if defined(PSX_WEB)
+        const Uint64 wait_start = SDL_GetPerformanceCounter();
+#endif
         frame_pacer_wait(&pacer, g_frame_period_ms);
+#if defined(PSX_WEB)
+        const Uint64 wait_end = SDL_GetPerformanceCounter();
+        const Uint64 wait_freq = SDL_GetPerformanceFrequency();
+        if (wait_end >= wait_start && wait_freq) {
+            g_web_perf_pacer_wait_us.fetch_add(
+                ((wait_end - wait_start) * 1000000u) / wait_freq,
+                std::memory_order_relaxed);
+        }
+#endif
     }
     latency_ring_mark(LAT_PACED);
 
@@ -2661,9 +2694,13 @@ static void sdl_vblank_present(void) {
                                 game frame that could not present wide) */
     {
         static bool disabled_frame_presented = false;
+        static uint32_t depth24_last_decode = 0;
+        static bool depth24_mdec_seen = false;
         GpuDisplayInfo di;
         gpu_get_display_info(&di);
         if (di.disabled || di.width == 0 || di.height == 0) {
+            depth24_last_decode = mdec_get_decode_count();
+            depth24_mdec_seen = false;
             smooth_60_present(nullptr, 0, 0, false);
             present_ring_commit(PRES_PATH_BLANK, (uint16_t)di.width,
                                 (uint16_t)di.height, 0);
@@ -2684,6 +2721,27 @@ static void sdl_vblank_present(void) {
             return;
         }
         disabled_frame_presented = false;
+
+        /* MDEC movies usually hold each decoded 24-bit image for more than one
+         * 59.94 Hz guest vblank.  Re-reading packed VRAM, converting every
+         * pixel to ARGB, uploading it, and presenting the identical image was
+         * one of the largest avoidable costs on two-core WebAssembly hosts.
+         *
+         * Pacing, input, simulation, and audio have already run above; skip
+         * only the redundant presentation work.  Require observed MDEC
+         * activity in the current 24-bit run so a non-MDEC 24-bit screen can
+         * still update through ordinary VRAM writes. */
+        const uint32_t depth24_decode = mdec_get_decode_count();
+        if (!di.depth24) {
+            depth24_last_decode = depth24_decode;
+            depth24_mdec_seen = false;
+        } else if (depth24_decode != depth24_last_decode) {
+            depth24_last_decode = depth24_decode;
+            depth24_mdec_seen = true;
+        } else if (depth24_mdec_seen) {
+            return;
+        }
+
         w = di.width; h = di.height;
         /* 4:3-pinned frames: the pre-game BIOS boot, plus (once engaged) every
          * frame the widescreen layer presents native — FMV video and full-2D
@@ -2916,6 +2974,13 @@ static void sdl_vblank_present(void) {
         latency_ring_mark(LAT_SWAP_END);
         const Uint64 freq = SDL_GetPerformanceFrequency();
         const Uint64 present_ms = (t1 >= t0 && freq) ? ((t1 - t0) * 1000u) / freq : 0;
+#if defined(PSX_WEB)
+        if (t1 >= t0 && freq) {
+            g_web_perf_present_us.fetch_add(
+                ((t1 - t0) * 1000000u) / freq,
+                std::memory_order_relaxed);
+        }
+#endif
         if (!g_present_vsync_disabled && present_ms > 250) {
             g_present_slow_count++;
             if (g_present_slow_count >= 3 &&
