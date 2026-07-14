@@ -1575,6 +1575,50 @@ extern "C" EMSCRIPTEN_KEEPALIVE int psx_web_pepsiman_is_main_menu(void) {
            psx_read_word(0x80095884u) == 0x800A7318u;
 }
 
+extern "C" EMSCRIPTEN_KEEPALIVE int psx_web_pepsiman_is_title_screen(void) {
+    /* The same flow callback drives the PRESS START screen, its zoom animation,
+     * and the menu transition, so guest state alone cannot distinguish them.
+     * Match stable pixels inside the final full-size logo instead. The sampled
+     * coordinates avoid the animated runner, runway, and blinking prompt. */
+    GpuDisplayInfo di;
+    gpu_get_display_info(&di);
+    if (di.depth24 || di.width != 320u || di.height < 200u) return 0;
+
+    static const uint16_t white_points[][2] = {
+        { 70, 80 }, { 110, 80 }, { 150, 80 }, { 190, 80 }, { 235, 80 }
+    };
+    static const uint16_t navy_points[][2] = {
+        { 70, 110 }, { 110, 110 }, { 150, 110 }, { 190, 110 }, { 235, 110 }
+    };
+    static const uint16_t black_points[][2] = {
+        { 35, 35 }, { 160, 25 }, { 300, 35 }
+    };
+
+    int white = 0, navy = 0, black = 0;
+    for (const auto& point : white_points) {
+        uint32_t c = gpu_display_pixel_argb(&di, point[0], point[1]);
+        int r = (int)((c >> 16) & 0xFFu);
+        int g = (int)((c >> 8) & 0xFFu);
+        int b = (int)(c & 0xFFu);
+        if (r >= 190 && g >= 185 && b >= 190) white++;
+    }
+    for (const auto& point : navy_points) {
+        uint32_t c = gpu_display_pixel_argb(&di, point[0], point[1]);
+        int r = (int)((c >> 16) & 0xFFu);
+        int g = (int)((c >> 8) & 0xFFu);
+        int b = (int)(c & 0xFFu);
+        if (r <= 70 && g <= 65 && b >= 70 && b <= 175) navy++;
+    }
+    for (const auto& point : black_points) {
+        uint32_t c = gpu_display_pixel_argb(&di, point[0], point[1]);
+        int r = (int)((c >> 16) & 0xFFu);
+        int g = (int)((c >> 8) & 0xFFu);
+        int b = (int)(c & 0xFFu);
+        if (r <= 28 && g <= 28 && b <= 28) black++;
+    }
+    return white >= 3 && navy >= 4 && black == 3;
+}
+
 extern "C" EMSCRIPTEN_KEEPALIVE int psx_web_pepsiman_is_free_play_selector(void) {
     return psx_read_half(0x80095880u) == 8u &&
            psx_read_word(0x80095884u) == 0x800A732Cu;
