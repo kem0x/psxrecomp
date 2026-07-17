@@ -823,6 +823,13 @@ static uint32_t mmio_read32_impl(uint32_t addr) {
     }
     /* Expansion 2 / POST: 0x1F802000..0x1F802FFF */
     if (addr >= 0x1F802000u && addr <= 0x1F802FFFu) {
+#ifdef PSX_BIOS_INTERPRETER
+        /* PCSX-Redux's optional OpenBIOS shell probes its emulator-extension
+         * signature before choosing a VBlank wait path. Advertise the present
+         * hook so it uses I_STAT instead of polling interlaced GPU field bits,
+         * which this software frontend does not synthesize during BIOS boot. */
+        if (addr == 0x1F802080u) return 0x58534350u; /* "PCXS" */
+#endif
         return 0;
     }
     { /* open-bus (Beetle parity) */ g_io_openbus_reads++;  return 0;; }

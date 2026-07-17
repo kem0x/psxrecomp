@@ -1388,7 +1388,15 @@ static void exec_command(uint8_t cmd) {
          * (PS_CDC::Command_Reset, PSRCounter). Same second-response class as
          * Pause: an authentic multi-frame latency games' drivers rely on —
          * never scaled by the disc-speed divisor. */
+#ifdef PSX_BIOS_INTERPRETER
+        /* OpenBIOS polls Init with a bounded 30,000-iteration loop and will
+         * reissue the command if COMPLETE has not arrived.  Keep its bundled
+         * boot path inside that architectural timeout; the generated Sony BIOS
+         * target retains the existing Beetle-derived latency below. */
+        pending.delay = 20000;
+#else
         pending.delay = 1136000;
+#endif
         pending.phase = 1;
         break;
 

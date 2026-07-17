@@ -287,7 +287,7 @@ if(NOT PSXRECOMP_SKIP_BIOS_STALE_CHECK)
 endif()
 
 function(psxrecomp_add_runtime_target target)
-    set(options ORACLE COSIM)
+    set(options ORACLE COSIM BIOS_INTERPRETER)
     set(oneValueArgs
         GAME_GENERATED_FULL_C
         GAME_GENERATED_DISPATCH_C
@@ -317,7 +317,16 @@ function(psxrecomp_add_runtime_target target)
         set(PSXRT_DEFAULT_GAME_CONFIG_PATH "")
     endif()
 
-    set(generated_sources ${PSXRECOMP_BIOS_GENERATED})
+    if(PSXRT_BIOS_INTERPRETER)
+        # BIOS-independent targets execute the selected ROM through the runtime
+        # MIPS interpreter until it hands control to the statically recompiled
+        # game. This keeps proprietary generated BIOS code out of the target and
+        # permits redistributable replacements such as PCSX-Redux OpenBIOS.
+        set(generated_sources
+            ${PSXRECOMP_ROOT}/runtime/src/bios_interp_dispatch.c)
+    else()
+        set(generated_sources ${PSXRECOMP_BIOS_GENERATED})
+    endif()
     if(PSXRT_GAME_GENERATED_FULL_C)
         set_source_files_properties("${PSXRT_GAME_GENERATED_FULL_C}" PROPERTIES GENERATED TRUE)
         list(APPEND generated_sources "${PSXRT_GAME_GENERATED_FULL_C}")
@@ -348,6 +357,10 @@ function(psxrecomp_add_runtime_target target)
         ${generated_sources}
         ${PSXRT_EXTRAS_SOURCES}
     )
+
+    if(PSXRT_BIOS_INTERPRETER)
+        target_compile_definitions(${target} PRIVATE PSX_BIOS_INTERPRETER=1)
+    endif()
 
     # Game-specific executable name. Every title instantiates this function with
     # the same CMake target name ("psx-runtime"), so without this they ALL produce

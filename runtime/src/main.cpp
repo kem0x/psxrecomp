@@ -467,6 +467,21 @@ static std::atomic<int> g_web_pepsiman_level_stage{0};
 static std::atomic<int> g_web_pepsiman_level_scene{1};
 static std::atomic<int> g_web_pepsiman_level_route{0};
 static std::atomic<int> g_web_pepsiman_unlimited_lives{0};
+/* Pepsiman time trials are measured in guest VBLANKs, not browser time. This
+ * keeps a result identical when the host misses presentation deadlines (most
+ * visibly on lower-power Windows handhelds). The browser only consumes the
+ * completed snapshot and never participates in the stopwatch. */
+static std::atomic<int> g_web_trial_active_level{-1};
+static std::atomic<uint64_t> g_web_trial_started_vblank{0};
+static std::atomic<uint32_t> g_web_trial_active_flags{0};
+static std::atomic<uint32_t> g_web_trial_run_serial{0};
+static std::atomic<uint32_t> g_web_trial_next_run_serial{0};
+static std::atomic<uint32_t> g_web_trial_result_serial{0};
+static std::atomic<uint32_t> g_web_trial_result_run_serial{0};
+static std::atomic<int> g_web_trial_result_level{-1};
+static std::atomic<uint64_t> g_web_trial_result_ticks{0};
+static std::atomic<uint32_t> g_web_trial_result_flags{0};
+static std::atomic<int> g_web_trial_result_gate{0};
 static int g_web_start_was_down = 0;
 #endif
 
@@ -836,6 +851,14 @@ static bool validate_bios_for_launch(const std::filesystem::path& path) {
     }
     std::vector<uint8_t> data((size_t)size);
     if (!read_at(f, 0, data.data(), data.size())) return false;
+#ifdef PSX_BIOS_INTERPRETER
+    if (data.size() < 0x80 ||
+        std::memcmp(data.data() + 0x78, "OpenBIOS", 8) != 0) {
+        launcher_warning("BIOS Warning",
+            "This build requires the bundled PCSX-Redux OpenBIOS image.");
+        return false;
+    }
+#else
     const uint32_t crc = crc32_compute(data.data(), data.size());
     if (crc != 0x37157331u) {
         char buf[256];
@@ -844,6 +867,7 @@ static bool validate_bios_for_launch(const std::filesystem::path& path) {
             "The runtime will try it anyway, but boot may fail.", crc);
         launcher_warning("BIOS Warning", buf);
     }
+#endif
     return true;
 }
 
@@ -1453,6 +1477,11 @@ extern "C" void gpu_texture_correction_set(int enabled);
 extern "C" uint32_t gpu_texture_correction_hits(void);
 extern "C" uint32_t gte_geometry_correction_hits(void);
 
+enum : uint32_t {
+    PSX_WEB_TRIAL_PAUSED = 1u << 0,
+    PSX_WEB_TRIAL_UNLIMITED_LIVES = 1u << 1
+};
+
 extern "C" EMSCRIPTEN_KEEPALIVE void psx_web_set_geometry_correction(int enabled) {
     gte_geometry_correction_set(enabled);
 }
@@ -1493,6 +1522,9 @@ extern "C" EMSCRIPTEN_KEEPALIVE void psx_web_set_keybind(uint32_t button,
 }
 
 extern "C" EMSCRIPTEN_KEEPALIVE void psx_web_set_paused(int paused) {
+    if (paused && g_web_trial_active_level.load(std::memory_order_acquire) >= 0)
+        g_web_trial_active_flags.fetch_or(
+            PSX_WEB_TRIAL_PAUSED, std::memory_order_acq_rel);
     g_web_paused.store(paused ? 1 : 0, std::memory_order_release);
 }
 
@@ -1501,6 +1533,142 @@ extern "C" EMSCRIPTEN_KEEPALIVE void psx_web_set_input_override(uint32_t word,
     g_web_sequence_length.store(0, std::memory_order_release);
     g_web_input_word.store(word & 0xFFFFu, std::memory_order_release);
     g_web_input_frames.store(frames > 0 ? frames : 0, std::memory_order_release);
+}
+
+static bool psx_web_pepsiman_flow_is(uint32_t callback) {
+    return psx_read_half(0x80095880u) == 8u &&
+           psx_read_word(0x80095884u) == callback;
+}
+
+static void psx_web_time_trial_cancel_internal(bool clear_result_gate) {
+    g_web_trial_active_level.store(-1, std::memory_order_release);
+    g_web_trial_started_vblank.store(0, std::memory_order_release);
+    g_web_trial_active_flags.store(0, std::memory_order_release);
+    g_web_trial_run_serial.store(0, std::memory_order_release);
+    if (clear_result_gate)
+        g_web_trial_result_gate.store(0, std::memory_order_release);
+}
+
+static void psx_web_time_trial_begin(int level, uint64_t now) {
+    uint32_t flags = g_web_pepsiman_unlimited_lives.load(std::memory_order_acquire)
+        ? PSX_WEB_TRIAL_UNLIMITED_LIVES : 0u;
+    uint32_t serial = g_web_trial_next_run_serial.fetch_add(
+        1, std::memory_order_acq_rel) + 1u;
+    g_web_trial_started_vblank.store(now, std::memory_order_release);
+    g_web_trial_active_flags.store(flags, std::memory_order_release);
+    g_web_trial_run_serial.store(serial, std::memory_order_release);
+    g_web_trial_active_level.store(level, std::memory_order_release);
+}
+
+static void psx_web_time_trial_complete(int level, uint64_t now) {
+    uint64_t started = g_web_trial_started_vblank.load(std::memory_order_acquire);
+    uint64_t ticks = now > started ? now - started : 0;
+    g_web_trial_result_level.store(level, std::memory_order_relaxed);
+    g_web_trial_result_ticks.store(ticks, std::memory_order_relaxed);
+    g_web_trial_result_flags.store(
+        g_web_trial_active_flags.load(std::memory_order_acquire),
+        std::memory_order_relaxed);
+    g_web_trial_result_run_serial.store(
+        g_web_trial_run_serial.load(std::memory_order_acquire),
+        std::memory_order_relaxed);
+    psx_web_time_trial_cancel_internal(false);
+    /* Do not arm the next scene until the result card has been dismissed. The
+     * shell pauses within one presentation frame, keeping a campaign scene at
+     * its opening while the player reads/submits the previous result. */
+    g_web_trial_result_gate.store(1, std::memory_order_release);
+    g_web_trial_result_serial.fetch_add(1, std::memory_order_release);
+}
+
+static void psx_web_time_trial_tick(uint64_t now) {
+    int level = (int)psx_read_byte(0x80095830u);
+    const bool valid_level = level >= 0 && level < 12;
+    const int track = cdrom_cdda_track();
+    const bool gameplay_audio = track >= 2 && track <= 6;
+    const bool main_menu = psx_web_pepsiman_flow_is(0x800A7318u);
+    const bool free_play_selector = psx_web_pepsiman_flow_is(0x800A732Cu);
+    const int action = g_web_pepsiman_level_action.load(std::memory_order_acquire);
+    const bool level_transition = action == 1 || action == 2;
+    int active = g_web_trial_active_level.load(std::memory_order_acquire);
+
+    if (active >= 0) {
+        if (g_web_pepsiman_unlimited_lives.load(std::memory_order_acquire))
+            g_web_trial_active_flags.fetch_or(
+                PSX_WEB_TRIAL_UNLIMITED_LIVES, std::memory_order_acq_rel);
+
+        if (level_transition) {
+            /* Restart/level-select deliberately visits the Free Play selector;
+             * it is an abandoned attempt, never a clear. */
+            psx_web_time_trial_cancel_internal(false);
+            active = -1;
+        } else if (free_play_selector) {
+            psx_web_time_trial_complete(active, now);
+            return;
+        } else if (valid_level && level != active) {
+            psx_web_time_trial_complete(active, now);
+            return;
+        } else if (track == 8 && active == 11) {
+            /* The final scene transitions into the ending instead of another
+             * numbered scene. */
+            psx_web_time_trial_complete(active, now);
+            return;
+        } else if (main_menu || track == 7 || (track == 8 && active != 11)) {
+            psx_web_time_trial_cancel_internal(false);
+            active = -1;
+        }
+    }
+
+    if (active < 0 && valid_level && gameplay_audio && !main_menu &&
+        !free_play_selector && !level_transition &&
+        !g_web_trial_result_gate.load(std::memory_order_acquire))
+        psx_web_time_trial_begin(level, now);
+}
+
+extern "C" EMSCRIPTEN_KEEPALIVE void psx_web_time_trial_cancel(void) {
+    psx_web_time_trial_cancel_internal(true);
+}
+
+extern "C" EMSCRIPTEN_KEEPALIVE void psx_web_time_trial_ack_result(void) {
+    g_web_trial_result_gate.store(0, std::memory_order_release);
+}
+
+extern "C" EMSCRIPTEN_KEEPALIVE void psx_web_time_trial_mark_assisted(uint32_t flags) {
+    if (g_web_trial_active_level.load(std::memory_order_acquire) >= 0)
+        g_web_trial_active_flags.fetch_or(flags, std::memory_order_acq_rel);
+}
+
+extern "C" EMSCRIPTEN_KEEPALIVE int psx_web_time_trial_active_level(void) {
+    return g_web_trial_active_level.load(std::memory_order_acquire);
+}
+
+extern "C" EMSCRIPTEN_KEEPALIVE uint32_t psx_web_time_trial_run_serial(void) {
+    return g_web_trial_run_serial.load(std::memory_order_acquire);
+}
+
+extern "C" EMSCRIPTEN_KEEPALIVE double psx_web_time_trial_active_ticks(void) {
+    if (g_web_trial_active_level.load(std::memory_order_acquire) < 0) return 0.0;
+    uint64_t now = g_web_perf_vblanks.load(std::memory_order_acquire);
+    uint64_t started = g_web_trial_started_vblank.load(std::memory_order_acquire);
+    return (double)(now > started ? now - started : 0);
+}
+
+extern "C" EMSCRIPTEN_KEEPALIVE uint32_t psx_web_time_trial_result_serial(void) {
+    return g_web_trial_result_serial.load(std::memory_order_acquire);
+}
+
+extern "C" EMSCRIPTEN_KEEPALIVE uint32_t psx_web_time_trial_result_run_serial(void) {
+    return g_web_trial_result_run_serial.load(std::memory_order_acquire);
+}
+
+extern "C" EMSCRIPTEN_KEEPALIVE int psx_web_time_trial_result_level(void) {
+    return g_web_trial_result_level.load(std::memory_order_acquire);
+}
+
+extern "C" EMSCRIPTEN_KEEPALIVE double psx_web_time_trial_result_ticks(void) {
+    return (double)g_web_trial_result_ticks.load(std::memory_order_acquire);
+}
+
+extern "C" EMSCRIPTEN_KEEPALIVE uint32_t psx_web_time_trial_result_flags(void) {
+    return g_web_trial_result_flags.load(std::memory_order_acquire);
 }
 
 static void psx_web_arm_input_sequence(const uint16_t* words, int count) {
@@ -2429,12 +2597,14 @@ static void sdl_vblank_present(void) {
         SDL_Delay(16);
     }
     starvation_watchdog_heartbeat();
-    g_web_perf_vblanks.fetch_add(1, std::memory_order_relaxed);
+    uint64_t web_vblank = g_web_perf_vblanks.fetch_add(
+        1, std::memory_order_relaxed) + 1u;
     /* SLPS-01762 lives/people counter. Pinning the live halfword is equivalent
      * to the established 80095770 0063 Action Replay code and does not modify
      * the memory-card profile. */
     if (g_web_pepsiman_unlimited_lives.load(std::memory_order_acquire))
         psx_write_half(0x80095770u, 99u);
+    psx_web_time_trial_tick(web_vblank);
 #endif
 #ifndef PSX_NO_DEBUG_TOOLS
     /* Debug server: pause gate, poll commands, record frame, check watchpoints. */
@@ -4174,6 +4344,14 @@ int main(int argc, char** argv) {
      * aliases the boot-skip alone. Env overrides: PSX_BIOS_HLE /
      * PSX_BIOS_HLE_KEEP_INTRO ('0' = off, anything else = on). */
     {
+#ifdef PSX_BIOS_INTERPRETER
+        bios_hle = false;
+        fast_boot = false;
+        psx_bios_hle_configure(0, 0);
+        std::fprintf(stdout,
+                     "psxrecomp: bios_backend=Interpreter (OpenBIOS)  "
+                     "bios_boot=OpenBIOS\n");
+#else
         if (const char* e = std::getenv("PSX_BIOS_HLE"))
             bios_hle = (e[0] && e[0] != '0');
         if (const char* e = std::getenv("PSX_BIOS_HLE_KEEP_INTRO"))
@@ -4186,6 +4364,7 @@ int main(int argc, char** argv) {
                      psx_bios_hle_backend_name(),
                      psx_bios_hle_boot_skip_enabled()
                          ? "HLE (shell skipped)" : "LLE (real intro)");
+#endif
     }
 
     /* R3000A reset state. */

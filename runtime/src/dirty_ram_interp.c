@@ -278,6 +278,7 @@ extern void psx_dispatch_call(CPUState* cpu, uint32_t addr, uint32_t return_addr
 
 /* Forward decls from memory.c — used to read instruction bytes. */
 extern uint8_t *memory_get_ram_ptr(void);
+extern uint32_t psx_read_word(uint32_t addr);
 
 /* MIPS instruction field decoders. */
 static inline uint32_t op_field    (uint32_t i) { return (i >> 26) & 0x3Fu; }
@@ -293,6 +294,13 @@ static inline uint32_t target26    (uint32_t i) { return  i        & 0x03FFFFFFu
 /* Read a 32-bit instruction word from kernel RAM at the given physical addr.
  * Caller has already verified the address is in dirty kernel RAM. */
 static inline uint32_t fetch_word(uint32_t phys) {
+    /* Interpreter-mode BIOS targets execute directly from the 512 KiB ROM
+     * window. RAM keeps the direct fast path used by overlays and installed
+     * kernel stubs. */
+#ifdef PSX_BIOS_INTERPRETER
+    if (phys >= 0x1FC00000u && phys <= 0x1FC7FFFCu)
+        return psx_read_word(phys);
+#endif
     const uint8_t *ram = memory_get_ram_ptr();
     return  (uint32_t)ram[phys]
          | ((uint32_t)ram[phys + 1] <<  8)
@@ -578,11 +586,23 @@ static int abort_unsupported(uint32_t pc, uint32_t insn, const char *reason) {
  * non-local-call contract (the Whoopee-Camp splash wild-jr). dirty_ram_is_dirty()
  * keeps clean boot text on the fast compiled path; only overwritten pages divert. */
 static inline int phys_is_overlay_flow_region(uint32_t phys) {
+#ifdef PSX_BIOS_INTERPRETER
+    if (phys >= 0x1FC00000u && phys <= 0x1FC7FFFFu) return 1;
+#endif
     return phys >= DIRTY_RAM_KERNEL_WINDOW_END;
 }
 
 static int is_local_dirty_target(uint32_t target) {
     uint32_t phys = target & 0x1FFFFFFFu;
+#ifdef PSX_BIOS_INTERPRETER
+    if (phys >= 0x1FC00000u && phys <= 0x1FC7FFFFu) return 1;
+#endif
+#ifdef PSX_HAS_GAME_DISPATCH
+    /* Surface a freshly loaded boot EXE to the top-level dispatcher so
+     * fntrace can establish the clean image baseline and select native code. */
+    if (psx_game_address_in_text(target) && dirty_ram_text_native_ok(phys))
+        return 0;
+#endif
     return phys_is_overlay_flow_region(phys) && dirty_ram_is_dirty(phys);
 }
 
@@ -1133,6 +1153,19 @@ static int exec_one(CPUState *cpu, uint32_t pc, uint32_t *next_pc_out) {
 
     *next_pc_out = pc + 4;
 
+#ifdef PSX_BIOS_INTERPRETER
+    /* The optional OpenBIOS shell inserts a 2,045-iteration software delay for
+     * every halfword uploaded to SPU RAM. Interpreting that calibration loop
+     * turns a cosmetic boot jingle into billions of host instructions. Match
+     * the exact three-instruction signature and collapse only this shell-local
+     * busywait; MMIO ordering and the following SPU-status poll are preserved. */
+    if (phys == 0x00032A8Cu && insn == 0x2442FFFFu &&
+        fetch_word(phys - 8u) == 0x3C031F80u &&
+        fetch_word(phys - 4u) == 0x240207FDu) {
+        cpu->gpr[2] = 1u;
+    }
+#endif
+
 #ifdef PSX_ENABLE_BLOCK_CYCLES
     /* Instruction FETCH cost (I-cache) — charged FIRST, before the §1 base, exactly
      * like Beetle ReadInstruction precedes the per-instruction base (cpu.cpp). HIT=+0,
@@ -1593,6 +1626,9 @@ static int exec_one(CPUState *cpu, uint32_t pc, uint32_t *next_pc_out) {
         if (cop_op == 0x10 && fnt == 0x10) { /* RFE */
             uint32_t sr = cpu->cop0[12];
             cpu->cop0[12] = (sr & 0xFFFFFFF0u) | ((sr >> 2) & 0x0Fu);
+            /* Match statically recompiled RFE instructions: the dispatcher
+             * performs the exception escape after the delay slot completes. */
+            psx_rfe_mark_escape();
             return 0;
         }
         return abort_unsupported(pc, insn, "COP0 op");
@@ -2197,7 +2233,11 @@ static int dirty_ram_dispatch_inner(CPUState* cpu, uint32_t addr, uint32_t stop_
     }
 #define OV_FPLOG_RET1() do { if (_ovfp) overlay_fp_log(addr, _in_regs, cpu, 0); return 1; } while (0)
 
-    if (!dirty_ram_is_dirty(phys) && !clean_game_text_miss) return 0;
+    int bios_rom = 0;
+#ifdef PSX_BIOS_INTERPRETER
+    bios_rom = phys >= 0x1FC00000u && phys <= 0x1FC7FFFFu;
+#endif
+    if (!bios_rom && !dirty_ram_is_dirty(phys) && !clean_game_text_miss) return 0;
 
     /* Interp-pressure signal for variant-capture automation (step 2.8):
      * counts dispatches the interpreter actually handles inside a capture

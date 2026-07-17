@@ -723,7 +723,14 @@ uint32_t spu_read(uint32_t addr) {
         uint32_t idx = reg_index(addr);
         if (idx < SPU_REG_COUNT) {
             if (addr == 0x1F801DAEu) {
+#ifdef PSX_BIOS_INTERPRETER
+                /* OpenBIOS waits for the SPU transfer/status low eleven bits
+                 * to clear before continuing. With no DMA or transfer active,
+                 * idle hardware reports those request/busy bits clear. */
+                return 0x0000;
+#else
                 return 0x0400; /* SPUSTAT: ready */
+#endif
             }
             /* ENDX (end-block-reached latch). Real hw sets bit v when voice
              * v decodes a block whose flag byte has bit 0; KEYON[v] clears

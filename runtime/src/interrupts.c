@@ -816,6 +816,15 @@ void psx_check_interrupts(CPUState* cpu) {
      * stack; real hardware would wedge the guest instead — we stop nesting
      * there (counted) so the rings expose it. */
     if (in_exception) {
+#ifdef PSX_BIOS_INTERPRETER
+        /* OpenBIOS restores SR before its register epilogue and interpreted
+         * execution can reach a host interrupt poll before the trailing RFE.
+         * Do not recursively enter the handler in that short restore window;
+         * the pending IRQ remains latched and is considered after RFE. */
+        exception_reentry_blocks++;
+        irq_record_outcome(EV_IRQ_GATE, GATE_IN_EXCEPTION, 0);
+        PSX_CHECK_INTERRUPTS_RETURN();
+#endif
         /* Refinements over plain SR gating (first attempt wedged BOOT at
          * f436): (1) never nest while an RFE/escape unwind is in flight —
          * the guest's RFE pops SR (IEc back to 1) BEFORE the host escape
