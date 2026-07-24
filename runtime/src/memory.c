@@ -54,7 +54,7 @@ void memory_clear_low_boot_scratch(void) {
     memset(ram, 0, 0x10u);
 }
 
-/* ---- Dirty-page tracking for install-at-runtime code (CLAUDE.md Rule 18) ----
+/* ---- Dirty-page tracking for install-at-runtime code (DEVELOPMENT.md Rule 18) ----
  *
  * The PS1 BIOS writes 4-instruction dispatch stubs into kernel RAM at runtime
  * (e.g. RAM 0xCF0 for the SIO data-byte handler).  A static recompiler can't

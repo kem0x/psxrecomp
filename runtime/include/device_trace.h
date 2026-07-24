@@ -7,7 +7,7 @@
  * RootCounter / VBlank / SPU) fired at a different guest cycle" — the producer
  * of an over-fast or over-slow wait.
  *
- * Model (CLAUDE.md ring-buffer doctrine): ALWAYS-ON from boot, records one row
+ * Model (DEVELOPMENT.md ring-buffer doctrine): ALWAYS-ON from boot, records one row
  * per hardware IRQ-raise edge (the single choke point each backend funnels its
  * device interrupts through — native psx_irq_raise(); Beetle mednafen
  * IRQ_Assert rising edge), stamped with the deterministic guest-cycle ruler.

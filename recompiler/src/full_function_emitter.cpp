@@ -760,7 +760,7 @@ bool FullFunctionEmitter::emit_function(
             continue;
         }
 
-        // Install-slot hook (CLAUDE.md Rule 18 / docs/dynamic_handler_install.md).
+        // Install-slot hook (DEVELOPMENT.md Rule 18 / docs/dynamic_handler_install.md).
         // The PS1 BIOS overwrites specific kernel-RAM addresses at runtime
         // with dispatch stubs (e.g. RAM 0xCF0 for the SIO data-byte handler).
         // The recompiler emitted NOPs from the ROM image; if we just run those
@@ -1218,7 +1218,7 @@ void FullFunctionEmitter::emit_dispatch(
     out += "extern uint32_t gte_read_data(CPUState* cpu, uint8_t reg);\n";
     out += "extern uint32_t g_debug_current_func_addr;\n";
     out += "extern void debug_server_trace_dispatch(uint32_t func_addr);\n";
-    out += "/* BIOS HLE tier (CLAUDE.md \xC2\xA7""0 amendment 2026-07-02): null-by-default\n";
+    out += "/* BIOS HLE tier (DEVELOPMENT.md \xC2\xA7""0 amendment 2026-07-02): null-by-default\n";
     out += " * hook consulted at the top of every dispatch iteration, BEFORE any\n";
     out += " * backend (game image / dirty-RAM interp / static table) claims the\n";
     out += " * target. Installed by the runtime (bios_hle.c) when [runtime] bios_hle\n";
@@ -1529,7 +1529,7 @@ void FullFunctionEmitter::emit_dispatch(
     out += "        while (lo <= hi) {\n";
     out += "            int mid = (lo + hi) / 2;\n";
     out += "            if (dispatch_table[mid].addr == phys) {\n";
-    out += "                /* Kernel-image bless guard (CLAUDE.md Rule 18). The keys in\n";
+    out += "                /* Kernel-image bless guard (DEVELOPMENT.md Rule 18). The keys in\n";
     out += "                 * the relocated kernel window [0x500,0x8500) were compiled\n";
     out += "                 * from the ROM source of the BIOS's boot-time kernel copy —\n";
     out += "                 * but the BIOS (and games) PATCH kernel RAM at runtime (pad/\n";
@@ -1557,7 +1557,7 @@ void FullFunctionEmitter::emit_dispatch(
     out += "        }\n";
     out += "        }\n";
     out += "        /* Static dispatch miss.  Self-modifying / install-at-runtime RAM\n";
-    out += "         * (CLAUDE.md Rule 18): the BIOS writes dispatch stubs into kernel\n";
+    out += "         * (DEVELOPMENT.md Rule 18): the BIOS writes dispatch stubs into kernel\n";
     out += "         * RAM at runtime.  If the target page has been written-to since\n";
     out += "         * boot, interpret the basic block on cpu state.  Falls back to\n";
     out += "         * psx_unknown_dispatch for genuinely unmapped PCs. */\n";

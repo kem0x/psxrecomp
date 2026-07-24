@@ -156,4 +156,4 @@ dispatch tables are additive). Full schema:
 - [`EXECUTION_MODEL.md`](EXECUTION_MODEL.md) — static/native/interp in depth.
 - [`BUILDING.md`](BUILDING.md) — dependencies + build steps.
 - [`../CONTRIBUTING.md`](../CONTRIBUTING.md) — dev workflow and rules.
-- [`../CLAUDE.md`](../CLAUDE.md) — the exhaustive engineering constitution.
+- [`../DEVELOPMENT.md`](../DEVELOPMENT.md) — the exhaustive engineering constitution.

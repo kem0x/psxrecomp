@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 build_instruction_inventory.py
 
@@ -12,7 +12,7 @@ INCLUDING its delay slot, OR on hitting the next function's start
 address. This is the canonical MIPS function-epilogue terminator and
 matches how PS1 BIOS code is laid out.
 
-Verification: a sample of 5 function bodies retrieved from Ghidra MCP
+Verification: a sample of 5 function bodies retrieved from Ghidra service
 (see ghidra_function_starts.json -> verified_function_bodies) is
 compared against this walker. If any verified end disagrees with the
 walker's detected end, the script aborts with a non-zero exit and an

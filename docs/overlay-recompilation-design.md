@@ -1,8 +1,8 @@
 # Overlay Recompilation — Design Review
 
-**Status:** CONVERGED (post-review). The open questions below were taken to an
-external reviewer; the resolutions are recorded in §5–§7 at the end, which
-supersede any "OPEN" markers above. §0–§4 are preserved as the reasoning trail.
+**Status:** CONVERGED (post-review). The resolutions are recorded in §5–§7 at
+the end and supersede any "OPEN" markers above. §0–§4 are preserved as the
+reasoning trail.
 
 **Increment 3 (current work):** the design of record is **§8 — Per-entry
 validity + multi-candidate dispatch**, which supersedes the coarse region-level

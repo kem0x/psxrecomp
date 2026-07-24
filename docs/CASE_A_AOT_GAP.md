@@ -100,7 +100,7 @@ missing: *additional entry points inside the copied region that aren't
 Ghidra-known function starts.*  These reach the recompiler via
 `recompiler/seeds/dispatch_miss_seeds.json`.
 
-`CLAUDE.md:333-365` (Rule 18) authorizes `dirty_ram_interp` for
+`DEVELOPMENT.md:333-365` (Rule 18) authorizes `dirty_ram_interp` for
 truly *assembled-at-runtime* stubs (e.g. the 4-instruction SIO
 data-byte handler at RAM 0xCF0 — which today's data confirms IS
 running).  But the bulk of "dynamically installed RAM code" is

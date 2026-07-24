@@ -6,7 +6,7 @@
  * signal) with a structured, deterministic scheduler that operates on the REAL
  * guest TCB structures.
  *
- * Rationale (see HLE_SCHEDULER_CARVEOUT_PLAN.md + CLAUDE.md §0 AMENDMENT): the
+ * Rationale (see HLE_SCHEDULER_CARVEOUT_PLAN.md + DEVELOPMENT.md §0 AMENDMENT): the
  * PS1 BIOS scheduler is pure-TCB — a thread's entire context (GPRs + guest SP +
  * EPC) lives in its TCB; a "thread switch" is just changing which TCB
  * dword_108->entry points to (ExceptionHandler 0xC80 / ReturnFromException
@@ -92,7 +92,7 @@ void psx_scheduler_run(struct CPUState* cpu);
  * boundary, in_exception == 0. Never returns (longjmp). */
 void psx_scheduler_resume_at(uint32_t resume_pc);
 
-/* HLE-tier standing subsystem replacement (CLAUDE.md §0 amendments
+/* HLE-tier standing subsystem replacement (DEVELOPMENT.md §0 amendments
  * 2026-06-29 + 2026-07-02). 1 = deterministic TCB scheduler (default, both
  * BIOS backends — the LLE host-fiber bridge it replaces is non-deterministic);
  * 0 = legacy host-fiber bridge. Default from [runtime] hle_scheduler via

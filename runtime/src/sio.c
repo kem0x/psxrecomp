@@ -8,7 +8,7 @@
  *
  * Ported from v3 with audit:
  *   - Removed psx_runtime.h dependency (unused)
- *   - Removed all fprintf (CLAUDE.md rule #3)
+ *   - Removed all fprintf (DEVELOPMENT.md rule #3)
  *   - IRQ delivery via i_stat bit-set (same as timers/dma)
  */
 

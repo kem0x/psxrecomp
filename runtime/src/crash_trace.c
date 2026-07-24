@@ -10,7 +10,7 @@
  *
  * Mirrors the sibling SuperMarioWorldRecomp project's src/post_mortem.c. The file
  * is OVERWRITTEN on each dump (last-write-wins, single file per run);
- * this is not a log per CLAUDE.md §3 — it's a one-shot final state
+ * this is not a log per DEVELOPMENT.md §3 — it's a one-shot final state
  * snapshot for crashes the running TCP server cannot intercept.
  *
  * All payload comes from already-existing rings; this module is a

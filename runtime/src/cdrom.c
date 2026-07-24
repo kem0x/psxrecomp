@@ -306,7 +306,7 @@ static int apply_speed(int delay) {
     return d < CDROM_MIN_DELAY ? CDROM_MIN_DELAY : d;
 }
 
-/* ---- CD load-burst ring (always-on; CLAUDE.md ring-buffer rule) ----------
+/* ---- CD load-burst ring (always-on; DEVELOPMENT.md ring-buffer rule) ----------
  * A "burst" is a run of delivered sectors with no gap longer than
  * CD_BURST_GAP_FRAMES — i.e. one load. Records make "load duration" a
  * measured quantity (frames + host wall ms + sectors + the instant rate in

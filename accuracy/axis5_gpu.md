@@ -288,7 +288,7 @@ diffability or keep replication as an explicit present-time option.
 
 ## 4. Validation method
 
-Two independent processes share the JSON debug protocol (CLAUDE.md §16):
+Two independent processes share the JSON debug protocol (DEVELOPMENT.md §16):
 `psx-runtime` (native, TCP **4500** on this wt/tomba2 worktree per build-t2;
 4370 on master) and `psx-beetle` (oracle, TCP **4382**/4380). Validate per the
 ring-buffer-first rule — query always-on state, never arm-then-capture.

@@ -1,4 +1,4 @@
-﻿/* fntrace.h — always-on call ring for recomp psx_dispatch.
+/* fntrace.h — always-on call ring for recomp psx_dispatch.
  *
  * Records every entry into psx_dispatch with the caller's argument
  * registers and return address. Mirrors beetle_libretro.cpp's fntrace
@@ -6,7 +6,7 @@
  * so cross-process tools that already speak Beetle's protocol work
  * unchanged against psx-runtime.
  *
- * Why "always-on" rather than arm-then-record: see CLAUDE.md global
+ * Why "always-on" rather than arm-then-record: see DEVELOPMENT.md global
  * rule "Never time/attach for observability". The ring captures every
  * dispatch from boot; arming only narrows what the dump command
  * reports, never what is recorded. To investigate a window of

@@ -3,8 +3,8 @@
 Thanks for your interest! PSXRecomp is a static recompiler, not an emulator, and
 it holds itself to a high correctness bar. This guide covers how the project is
 organized, the rules that keep it faithful, and how to get a change merged.
-Contributions are welcome — AI-assisted or not — as long as they are reviewed,
-tested, and keep the core game-agnostic.
+Contributions are welcome as long as they are reviewed, tested, and keep the
+core game-agnostic.
 
 New to the codebase? Read [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) and
 [`docs/EXECUTION_MODEL.md`](docs/EXECUTION_MODEL.md) first, then
@@ -35,7 +35,7 @@ framework change actually reaches a game.
 
 These are non-negotiable because violating them is how past efforts turned into
 un-debuggable emulators. The full engineering constitution is
-[`CLAUDE.md`](CLAUDE.md); the debugging philosophy is
+[`DEVELOPMENT.md`](DEVELOPMENT.md); the debugging philosophy is
 [`PRINCIPLES.md`](PRINCIPLES.md). The short version:
 
 1. **Build the faithful core; no per-game hacks in the foundation.** The correct
@@ -64,12 +64,11 @@ un-debuggable emulators. The full engineering constitution is
 6. **Fix broken tooling immediately** — don't route around it with indirect
    evidence, and don't infer correctness from two implementations sharing a bug.
 
-## AI-assisted and human contributions
+## Contribution responsibility
 
-Both are welcome. Using AI does not reduce your responsibility for the result:
-review, understand, and test any code before submitting it, and don't submit a
-large AI-generated rewrite you can't explain or validate. A PR — however it was
-written — is likely to be rejected if it:
+Review, understand, and test all code before submitting it. Do not submit a
+large generated rewrite you cannot explain or validate. A PR is likely to be
+rejected if it:
 
 - Introduces broad, unfocused changes, or combines unrelated refactors with
   behavioral fixes.
@@ -230,12 +229,10 @@ copy from incompatible licenses or proprietary sources.
 
 ## Be respectful
 
-Contributors use different tools, workflows, and levels of AI assistance. Review
-the contribution, not the person. Technical criticism is welcome; personal attacks
-are not.
+Contributors use different tools and workflows. Review the contribution, not the
+person. Technical criticism is welcome; personal attacks are not.
 
 ## Questions / community
 
-Development happens with the **R.A.I.D. (Retro AI Development)** community —
-Discord invite in the [README](README.md). Open a GitHub issue for bugs and
-build problems (include `gcc -v` / OS / generator for build failures).
+Open a GitHub issue for bugs and build problems (include `gcc -v` / OS /
+generator for build failures).

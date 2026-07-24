@@ -1,6 +1,6 @@
 /* dirty_ram_interp.c — small MIPS interpreter for install-at-runtime RAM.
  *
- * See CLAUDE.md Rule 18, docs/dynamic_handler_install.md, and the inline
+ * See DEVELOPMENT.md Rule 18, docs/dynamic_handler_install.md, and the inline
  * note in memory.c (search for "Option B") for the architectural rationale.
  *
  * Scope: only fires when psx_dispatch lands on a PC whose page has been
@@ -68,7 +68,7 @@ uint32_t g_dirty_safe_resume_pc = 0;
  * (not the coarse block edge). While set, exec_one's jal/jalr short-circuit to a
  * plain transfer (cpu->pc = target; return 1) so precise-mode steps INTO callees
  * per-instruction instead of running them compiled — the "ignore native
- * availability" invariant (ChatGPT-validated option b). Default 0 => every other
+ * availability" invariant (design-validated option b). Default 0 => every other
  * path is byte-for-byte unchanged. */
 int g_precise_mode = 0;
 /* #2 lockstep: set ONLY around the dirty-interp loop's per-instruction
@@ -144,7 +144,7 @@ uint32_t g_pczero_dirty_safe  = 0;
 uint64_t g_pczero_count       = 0;
 
 /* Mid-block unsupported-opcode counters. Bumped instead of fprintf-spamming
- * stderr (CLAUDE.md §3). Read via dirty_ram_get_unsupported(). The "last_*"
+ * stderr (DEVELOPMENT.md §3). Read via dirty_ram_get_unsupported(). The "last_*"
  * fields capture the most recent occurrence so a TCP query can see what
  * opcode is missing without needing log scraping. */
 uint64_t g_dirty_ram_unsupported_midblock = 0;
@@ -2073,7 +2073,7 @@ int psx_slice_block(CPUState *cpu, uint32_t block_addr, uint32_t bcyc, int side_
      * slice-off to isolate the first divergence the slice introduces. Read once. */
     /* PARKED (PRECISE_IRQ_SLICE.md): precise take-point slicing is a later
      * correctness upgrade, NOT the current FMV blocker (that is the -8 cycle
-     * drift / faithful per-instruction cycle model — see CLAUDE.md Rule -1).
+     * drift / faithful per-instruction cycle model — see DEVELOPMENT.md Rule -1).
      * Default OFF so the runtime boots on the baseline; opt in with
      * PSX_PRECISE_SLICE=1 to continue the block-leader-continuation work. */
     static int s_slice_enabled = -1;
@@ -2355,7 +2355,7 @@ static int dirty_ram_dispatch_inner(CPUState* cpu, uint32_t addr, uint32_t stop_
              * missing opcode.
              *
              * No fprintf — read the last-* globals via TCP if needed
-             * (CLAUDE.md §3). Synchronous stderr at the rate this fires
+             * (DEVELOPMENT.md §3). Synchronous stderr at the rate this fires
              * starves the dispatch loop and the debug-server poll. */
             g_dirty_ram_unsupported_midblock++;
             g_dirty_ram_last_unsupported_entry   = addr;
