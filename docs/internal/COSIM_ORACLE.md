@@ -35,7 +35,7 @@ instruction stream** — which then flips an early control-flow branch. Both bac
 also over-run vs the Beetle oracle (neither models GPU draw-time), so the *faithful*
 defect may be shared and only the phase differs between them.
 
-## Design (conferred with ChatGPT "PSX Static Recompiler Debug", 2026-06-30)
+## Design (reviewed 2026-06-30)
 
 ### Architecture: two processes + coordinator (v1)
 
@@ -82,7 +82,7 @@ machines — that would hide the exact class we're hunting. Each backend reads *
 devices from its own state (our old lockstep fed *recorded* values and was thus blind
 to input divergence — that blind spot is the whole reason for this rebuild).
 
-### Bounded reporting (LLM must not be firehosed — user constraint)
+### Bounded reporting (reviewer must not be firehosed — user constraint)
 
 Because the coordinator steps in lockstep and **halts on the first mismatch**, nothing
 scrolls away: each process keeps only a **ring of the last N blocks**
@@ -179,7 +179,8 @@ report.
   asset-load loop (~5.4× GPU DMAs/frame) and completes `func_8001CB3C` ~150M cycles
   early → wrong branch. CD ruled out (faithful vs Beetle); MDEC decode cost
   implemented, did NOT fix. GPU draw cost bisect-confirmed as a **lever** but never
-  validated to render the FMV. ChatGPT gave a full DrawTimeAvail implementation plan.
+  validated to render the FMV. The resulting design includes a full
+  DrawTimeAvail implementation plan.
   **This is a hypothesis for the oracle to test, not an assumed answer.**
 - This session (2026-06-30): localized to the load-delay axis on the current build
   (`PSX_LOAD_DELAY=0` → FMV plays, pixels), but that is a **secondary phase modulator**,

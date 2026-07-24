@@ -1,6 +1,6 @@
 /* bios_hle.h — opt-in High-Level Emulation tier for PSX BIOS kernel services.
  *
- * CLAUDE.md §0 AMENDMENT 2026-07-02 (the gbarecomp model, see the sibling
+ * DEVELOPMENT.md §0 AMENDMENT 2026-07-02 (the gbarecomp model, see the sibling
  * gbarecomp project's src/runtime/bios_hle.h): the recompiled real
  * BIOS (LLE) is the DEFAULT, the reference implementation, and the
  * correctness/timing oracle. HLE is an *alternative backend*, selected
@@ -34,7 +34,7 @@
  * a "return the answer" fake. Timing is approximate (documented limitation;
  * LLE remains the timing oracle).
  *
- * Observability (CLAUDE.md rule 3 + the global ring-buffer rule): every hook
+ * Observability (DEVELOPMENT.md rule 3 + the global ring-buffer rule): every hook
  * decision is recorded in an always-on ring queryable over the TCP debug
  * server ("hle_dump"), never armed, never polled.
  */

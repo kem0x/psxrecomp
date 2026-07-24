@@ -2246,7 +2246,7 @@ void debug_server_trace_dispatch(uint32_t func_addr) {
                                 debug_cpu_ptr->gpr[6], debug_cpu_ptr->gpr[7],
                                 debug_cpu_ptr->gpr[31]);
         }
-        /* Event/thread-op stream (ChatGPT-conferred blocked-main-thread hunt,
+        /* Event/thread-op stream (blocked-main-thread investigation,
          * MMX6 cutscene->gameplay freeze). The recompiler resolves B0 event calls
          * to DIRECT compiled-function calls, so they bypass the 0xB0 vector above
          * (the vector ring stays empty). But the event functions ARE dispatched as
@@ -7136,7 +7136,7 @@ static void handle_turbo_state(int id, const char *json)
 
 /* pause / continue / step / run_to_frame: REMOVED.
  *
- * Per CLAUDE.md global rule #2 ("Never time/attach for observability —
+ * Per DEVELOPMENT.md global rule #2 ("Never time/attach for observability —
  * always consume ring buffers"), pause/step is the wrong primitive for
  * observation. It produces synthesized snapshots ("what's state right
  * NOW") rather than reading the system's own continuously-recorded

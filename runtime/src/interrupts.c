@@ -903,7 +903,7 @@ void psx_check_interrupts(CPUState* cpu) {
      * delivery, whether the kernel VSync callback-block word at 0x80079D44 is the
      * clobbered game value AND whether a CD DMA (ch3) is mid-transfer / a DMA is
      * executing. If VBlank gets delivered with d44 already==0x016F0110 while the CD
-     * DMA is active, that is ChatGPT's class (c)+(#2): IRQ delivered in the DMA
+     * DMA is active, that is class (c)+(#2): IRQ delivered in the DMA
      * clobber window because the CPU isn't stalled / the event wasn't torn down. */
     {
         extern int dma_cdrom_transfer_active(void);

@@ -3,7 +3,7 @@
 Branch wt/tomba2-load-accuracy. When `PSX_RAM_READ_WAIT_CYCLES=4` (the
 Beetle-oracle-accurate single-load value, vs the old DuckStation 6), Tomba 2's
 boot deterministically wedged in the BIOS shell. **Root-caused and FIXED
-2026-06-27.** This is the faithful-core cascade exactly as CLAUDE.md predicts:
+2026-06-27.** This is the faithful-core cascade exactly as DEVELOPMENT.md predicts:
 an accurate CPU cost exposed an inaccurate *device* timing.
 
 ## Symptom (was reproducible, deterministic)

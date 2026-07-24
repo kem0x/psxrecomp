@@ -37,7 +37,7 @@ FIX — the efficiency layer:
    synchronous on the dispatch thread) all run on the emu/main thread → hitches.
 4. **No in-flight dedup** beyond the global `AC_RUNNING` lock (`autocompile.c:21`).
 
-## Target architecture (per ChatGPT review + audit)
+## Target architecture (reviewed and audited)
 
 Reframe the question from "have I built this region?" to "do I have a native
 provider for every function identity present right now?"
@@ -111,7 +111,7 @@ provider for every function identity present right now?"
   `code_crc` (`5CE0B05E`). So the loader registers TWO candidates covering the
   same bytes — and a CPS continuation to 0x51FA4 can resolve via idx_head (the
   alias, epilogue-only) OR overlay_find_by_range (either candidate, same range).
-  Hypothesis to confirm with the recompiler/ChatGPT: aliases/interior entries
+  Hypothesis to confirm against the recompiler architecture: aliases/interior entries
   should ROLL UP to the parent host shard (same range+crc => deduplicate, register
   the parent and let overlay_find_by_range handle the interior PC), instead of
   emitting a separate epilogue-only alias body that can be dispatched in place of
@@ -155,7 +155,7 @@ file / DLL, a single audit failure skips the WHOLE region's DLL → coverage get
 WORSE (the previously-good 0x38000 region stopped compiling). The shared-region
 compile makes speculative roots fragile.
 
-ROBUST PATH — ChatGPT architecture review (2026-06-23), the validated plan:
+ROBUST PATH — validated architecture plan (2026-06-23):
 
 CORE INVARIANT: speculative roots must NOT share a compile-failure domain with
 trusted roots. The regression = mixing speculative recovered-host roots into the

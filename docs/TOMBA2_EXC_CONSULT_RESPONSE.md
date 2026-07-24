@@ -1,8 +1,8 @@
-# Recomp GPT consult response — Tomba 2 EPC de-overload (2026-06-22)
+# Tomba 2 EPC de-overload design review (2026-06-22)
 
-Verbatim design response from the Recomp GPT (thread "Recomp - Tomba 2 Debugging
-Analysis"). Converges on **Option A** as a scoped **dual-mode** exception system, with
-safety rails. Implementation reference for the fix.
+The reviewed design converges on **Option A** as a scoped **dual-mode**
+exception system with safety rails. This is the implementation reference for
+the fix.
 
 ## Core: hard resume-mode split
 

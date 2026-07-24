@@ -333,7 +333,7 @@ C. **Status-register pin.** Drive a DECODE and poll the MDEC status word on
 D. **Regression gate.** After each fix, re-run A (block diff must reach
    byte-identical for the standard tables) before B. Keep A as a permanent
    pinning test so future emitter/codegen changes can't silently regress MDEC.
-   Per CLAUDE.md Rule 15, build the block-dump tooling rather than eyeballing.
+   Per DEVELOPMENT.md Rule 15, build the block-dump tooling rather than eyeballing.
 
 Note: confirm the live debug ports before run B — project memory cites
 4500 (wt/tomba2 native), 4370 (master native), 4380/4382 (Beetle). Sections

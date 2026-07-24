@@ -25,8 +25,8 @@ This ecosystem is being BUILT, not maintained. There is nothing to preserve.
   cycle-cost function for BOTH backends (compiled + dirty-RAM interp), exact
   block cycle totals (delay-slot ownership), timers derived on-demand from a
   global guest-cycle counter, devices on scheduled event deadlines, every
-  basic-block leader re-enterable. Confer with ChatGPT via the Chrome MCP
-  browser (chatgpt.com, "PSX Static Recompiler Debug" chat), not the codex CLI.
+  basic-block leader re-enterable. Use an independent design review for
+  high-risk architecture changes.
 
 This supersedes any pressure to ship fast. Completeness is absolute here.
 
@@ -176,7 +176,7 @@ Truth comes from three sources, in this order:
    code is supposed to do. Human-annotated pseudocode with named functions,
    kernel data structures (IntRP, ExCB, TCB, TCBH), A0/B0/C0 tables, boot
    sequence, and exception handler logic. Check this FIRST.
-2. **Ghidra MCP** for what the raw bytes are at a given address (static
+2. **Ghidra service** for what the raw bytes are at a given address (static
    analysis of `SCPH1001.BIN` loaded at `0xBFC00000`). Use when the disasm
    doesn't cover a function or you need exact instruction-level detail.
 3. **Beetle PSX oracle** (embedded in `psx-beetleoracle.exe`) for what real
@@ -235,11 +235,11 @@ a fake event. The fake delivery was not progress, it was theater.
 
 At the start of every session, before any code change:
 
-1. Read this file (CLAUDE.md).
+1. Read this file (DEVELOPMENT.md).
 2. Read docs/internal/PLAN.md to confirm what phase we are in and what the next
    concrete milestone is.
 3. Verify `docs/psx_bios_disasm.txt` exists (primary reference).
-4. Verify Ghidra MCP is reachable. If not, stop and ask.
+4. Verify Ghidra service is reachable. If not, stop and ask.
 5. State out loud: "Architecture A is locked. No interpreter. No stubs.
    LLE default + oracle; HLE only per the §0 amendments (opt-in tier,
    LLE fallback, no fakes). BIOS first. Game never until Phase 5."
@@ -297,15 +297,13 @@ what worked.
 
 ---
 
-## 9. Memory and prior session context
+## 9. Prior implementation context
 
-Auto-memory continues to work across sessions. Existing v3-era memories
-about printf rules, no-stubs, BIOS-first, DuckStation oracle, etc. all
-still apply. New v4-specific memories should be tagged so future
-sessions can tell them apart from v3 memories. The most important new
-memory is: **"v3 failed because it was an interpreter+HLE emulator
-masquerading as a recompiler. v4 fixes this by ACTUALLY recompiling
-the BIOS."**
+Repository documentation is the source of truth across development sessions.
+The established rules about diagnostics, no stubs, BIOS-first execution, and
+the DuckStation oracle still apply. The most important v4 lesson is: **v3
+failed because it was an interpreter+HLE emulator masquerading as a recompiler.
+v4 fixes this by actually recompiling the BIOS.**
 
 ---
 

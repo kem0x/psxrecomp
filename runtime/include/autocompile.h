@@ -2,7 +2,7 @@
  * (step 2.8). Spawns the configured compile command (compile_overlays.py
  * invocation from game.toml [runtime] overlay_autocompile_cmd) after an
  * automatic capture, collects its output into an in-memory ring (no log
- * files — CLAUDE.md §3; read it via the autocompile_status TCP command),
+ * files — DEVELOPMENT.md §3; read it via the autocompile_status TCP command),
  * and on success has the emu thread rescan the overlay-DLL cache so the new
  * variant goes native in-session, without a restart. */
 #ifndef PSXRECOMP_AUTOCOMPILE_H

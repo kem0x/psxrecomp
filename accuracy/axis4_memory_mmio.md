@@ -248,7 +248,7 @@ counter. Fold into the FAITHFUL_TIMING_PLAN timer-on-demand work, not here.
 
 ## 4. Validation method (ring-buffer-first, two-process)
 
-Per CLAUDE.md §16: query the always-on rings on both ports, never arm-and-capture.
+Per DEVELOPMENT.md §16: query the always-on rings on both ports, never arm-and-capture.
 psx-runtime = port 4370 (BIOS) / 4500 (build-t2 Tomba2); psx-beetle = port 4380
 (per the Tomba2 memory, beetle dev port 4382). Adjust ports to the live binaries.
 

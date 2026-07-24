@@ -1,4 +1,4 @@
-﻿/* freeze_heartbeat.h — observability infrastructure.
+/* freeze_heartbeat.h — observability infrastructure.
  *
  * Starts a background thread that snapshots runtime state to
  * `psx_freeze_heartbeat.json` every ~100 ms. Survives main-thread
@@ -6,7 +6,7 @@
  * is independent of the main loop and the debug-server TCP path.
  *
  * Reader: any external process that reads the file. The file is
- * overwritten in place — no log growth, no CLAUDE.md §3 violation.
+ * overwritten in place — no log growth, no DEVELOPMENT.md §3 violation.
  *
  * Not a fix for anything. Pure observability so we can see what state
  * the runtime was in just before it stalled.

@@ -98,7 +98,7 @@ When a recompiled-BIOS bug is suspected, the two servers let you find the **firs
 4. **Find the earliest mismatch**, not a later symptom. Ring-buffer queries (`frame_range`, `read_frame_ram`) help locate which frame went wrong.
 5. **Trace the write.** Use `watch` to catch the divergent store, or DS's `pc_break` on the suspect function entry. Look at `$ra` in `pc_hit_last` to identify the caller chain.
 6. **Classify.** codegen (recompiler generates wrong instruction), runtime (MMIO or kernel simulation wrong), timing (IRQ cadence), or BIOS (real-hardware quirk we didn't model).
-7. **Minimal fix** in the correct subsystem. Never hand-deliver state to hide the symptom (see CLAUDE.md §0).
+7. **Minimal fix** in the correct subsystem. Never hand-deliver state to hide the symptom (see DEVELOPMENT.md §0).
 
 ---
 
@@ -169,4 +169,4 @@ If an inspection need isn't covered by the existing commands, **do not fall back
 3. Keep field names parallel between the two
 4. Update this file
 
-The TCP server is the canonical instrumentation surface. Rule 3 in `CLAUDE.md` is absolute: **no `fprintf(stderr, …)` in source code, ever, for any reason**.
+The TCP server is the canonical instrumentation surface. Rule 3 in `DEVELOPMENT.md` is absolute: **no `fprintf(stderr, …)` in source code, ever, for any reason**.

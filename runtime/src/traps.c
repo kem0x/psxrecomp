@@ -222,7 +222,7 @@ static int psx_is_valid_tcb(CPUState* cpu, uint32_t tcb)
     return offset < size && (offset % 0xC0u) == 0;
 }
 
-/* ChatGPT-conferred 2026-06-29 "slice-exit provenance": records WHY cpu->pc became 0
+/* "slice-exit provenance" (2026-06-29): records WHY cpu->pc became 0
  * when a thread fiber's psx_dispatch returns (fiber_dispatch_exit). Distinguishes a
  * legitimate GUEST return (the guest's own jr/function-return left pc=0 — normal
  * per-frame recreate, fiber theory dead) from a HOST artifact (fiber-switch resume,
@@ -696,7 +696,7 @@ void psx_scheduler_resume_at(uint32_t resume_pc)
 /* Scheduler mode. HLE = the deterministic TCB scheduler
  * (psx_request_thread_switch, default); LLE = the legacy host-fiber bridge
  * (psx_change_thread_fiber). This is the HLE tier's standing SUBSYSTEM
- * REPLACEMENT (CLAUDE.md §0 amendments 2026-06-29 + 2026-07-02): unlike the
+ * REPLACEMENT (DEVELOPMENT.md §0 amendments 2026-06-29 + 2026-07-02): unlike the
  * opt-in call-HLE in bios_hle.c it defaults ON in BOTH backends, because the
  * LLE path it replaces (host fibers) has a genuine landmine — host-side
  * non-determinism with no hardware analog. Config default via
@@ -1205,7 +1205,7 @@ void psx_unknown_dispatch(CPUState* cpu, uint32_t addr, uint32_t phys) {
     {
         /* Always-on ring buffer of dispatch misses. Queryable via the
          * `unknown_dispatch_log` debug command. Replaces the prior
-         * file-based log per CLAUDE.md §3. */
+         * file-based log per DEVELOPMENT.md §3. */
         extern void psx_unknown_dispatch_record(uint32_t addr, uint32_t phys,
                                                  uint32_t ra, uint32_t a0,
                                                  uint32_t a1);
@@ -1218,7 +1218,7 @@ void psx_unknown_dispatch(CPUState* cpu, uint32_t addr, uint32_t phys) {
          * old default silently no-op'd it, leaving stale register state
          * and a broken call chain; that masked the MMX6 memset miss
          * (A0:2B -> ROM 0xBFC02B8C) for weeks while the symptom was
-         * chased as an event/timing bug (2026-07-02). Per CLAUDE.md §0
+         * chased as an event/timing bug (2026-07-02). Per DEVELOPMENT.md §0
          * a function is either fully implemented or it aborts fatally —
          * so the first miss dumps a full crash report and halts.
          *

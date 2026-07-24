@@ -297,7 +297,7 @@ every title — which is exactly what the LEGACY comment predicted, letting the
 ## 5. Validation method (native port 4500 vs Beetle oracle port 4382)
 
 Tomba2 dev runtime debug port is **4500** (memory: `tomba2_bringup`); Beetle
-oracle is the `psx-beetle.exe` JSON server (CLAUDE.md §16 names 4380; this task
+oracle is the `psx-beetle.exe` JSON server (DEVELOPMENT.md §16 names 4380; this task
 specifies **4382** — use whichever port the running beetle binary bound). Both
 expose the identical wire protocol, including `pad_status` (`debug_server.c:5713`)
 and `sio_trace` (`debug_server.c:9963`), and Beetle fires a per-byte SIO trace

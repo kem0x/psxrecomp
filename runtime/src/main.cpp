@@ -1,4 +1,4 @@
-﻿/* main.cpp — Phase 3 runtime entry point.
+/* main.cpp — Phase 3 runtime entry point.
  *
  * Loads BIOS ROM, initializes CPU state + SDL display, calls into
  * the recompiled reset vector. BIOS drives execution; SDL presents
@@ -4333,7 +4333,7 @@ int main(int argc, char** argv) {
      * sljit isn't the active backend. */
     overlay_sljit_init_helpers(&cpu);
 
-    /* BIOS backend select (CLAUDE.md §0 amendment 2026-07-02): LLE (the
+    /* BIOS backend select (DEVELOPMENT.md §0 amendment 2026-07-02): LLE (the
      * recompiled BIOS — default, reference implementation, oracle) vs the
      * opt-in HLE tier (implemented kernel services computed in-runtime, LLE
      * fallback for everything else). Boot always starts at the real reset
@@ -4539,7 +4539,7 @@ int main(int argc, char** argv) {
      * outermost trampoline loop saw cpu->pc == 0 (some jr/tail-transfer
      * published a null PC) — an abnormal boot exit. Dump the always-on
      * fntrace ring tail (last dispatch chain) to a JSON artifact so we can
-     * see exactly which targets led to the null PC. (CLAUDE.md ring-buffer
+     * see exactly which targets led to the null PC. (DEVELOPMENT.md ring-buffer
      * model: consume the always-on ring after the fact, not arm-and-time.) */
     {
         FILE* tf = std::fopen("psx_cps_exit_trace.json", "wb");

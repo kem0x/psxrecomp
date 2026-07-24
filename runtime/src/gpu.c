@@ -3140,7 +3140,7 @@ uint32_t gpu_get_opcode_count(uint8_t op) { return gp0_opcode_count[op]; }
 
 /* ---- Per-frame GP0 command ring (always-on, queried via debug server) ---- */
 /* We record every GP0 command (header + up to 6 payload words) with the
- * frame number it was issued in. Per CLAUDE.md ring-buffer rule: capture
+ * frame number it was issued in. Per DEVELOPMENT.md ring-buffer rule: capture
  * is continuous and observers query a window of interest later, not arm-
  * then-record. ~34 MB at 1M entries. Polyline / long commands get the
  * first 6 payload words; that's enough for the header + first vertex pair

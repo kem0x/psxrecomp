@@ -1,7 +1,7 @@
 # PSXRecomp v4 — Plan for Static Recompilation of the PlayStation BIOS
 
-> **Audience for this document:** an outside reviewer (ChatGPT or a
-> human engineer) who has not seen any of the prior versions. The goal
+> **Audience for this document:** an engineer who has not seen any of the prior
+> versions. The goal
 > is for this document to be self-contained: by the end you should
 > understand what we are building, why three previous attempts failed,
 > what we are deliberately doing differently, what the hard problems
@@ -106,7 +106,7 @@ for each new bug was another shim. The architecture made bugs cheaper
 to paper over than to fix.
 
 **The v3 failure was not a discipline failure. It was an architectural
-failure.** The CLAUDE.md rules in v3 forbade stubs, forbade printf,
+failure.** The DEVELOPMENT.md rules in v3 forbade stubs, forbade printf,
 forbade game-loading, forbade simulating outputs of native systems —
 and every rule was violated because the architecture made compliance
 impossible. You cannot run an interpreter+HLE system without making
@@ -181,7 +181,7 @@ through the actual RAM array.
 
 ### M5. Stub creep under schedule pressure
 
-Every prior version started with "no stubs ever" in CLAUDE.md and
+Every prior version started with "no stubs ever" in DEVELOPMENT.md and
 ended with hundreds of stubs. The reason: when a new BIOS path
 crashes the interpreter, the easy fix is to add an HLE case that
 returns a plausible value. The hard fix is to debug why the
@@ -639,7 +639,7 @@ exist in the "unknown" set when Phase 1b ends.
 1. Use Ghidra (`SCPH1001.BIN` at `0xBFC00000`) as the static oracle
    for the instruction inventory. Enumerate every distinct opcode
    that appears in the disassembly of the ROM. This is a static
-   read-only query against the Ghidra MCP — it does not require
+   read-only query against the Ghidra service — it does not require
    walking the BIOS in v4's recompiler.
 2. For each opcode in the inventory, check whether
    `strict_translator` already implements it. The check is by
@@ -807,8 +807,8 @@ the v3 failure mode.
    (`computed_call`, `computed_tail_call`, `dispatch_stub`,
    `unknown`).
 2. Cross-reference every recorded site against Ghidra's analysis of
-   the same address (`mcp__ghidra__get_function_info`,
-   `mcp__ghidra__xrefs`) and store Ghidra's view alongside the
+   the same address (`ghidra_get_function_info`,
+   `ghidra_xrefs`) and store Ghidra's view alongside the
    recompiler's view. Disagreement between Ghidra and the recompiler
    is itself a finding that must be surfaced — it is never silently
    reconciled.
@@ -882,7 +882,7 @@ that fact is provable, not assumed.
 
 - `generated/relocation_proofs/` — a directory with one
   subdirectory per proven copy operation, each containing:
-  - the Ghidra MCP output that identified the copy loop
+  - the Ghidra service output that identified the copy loop
   - the DuckStation memory-trace excerpt that confirmed it at
     runtime
   - a `proof.json` summarizing the source range, destination range,
@@ -1009,11 +1009,9 @@ without an artifact.**
   drift from the committed copy without a code change, that itself
   is a finding.
 
-The reason this section exists: every prior version of the project
-had sessions in which Claude reported a result, the user believed it,
-and the result turned out to be wishful synthesis with no underlying
-artifact. v4 forbids that pattern by requiring the artifact to exist
-*before* the result can be claimed.
+The reason this section exists: prior versions accepted reported results that
+later turned out to have no supporting artifact. v4 forbids that pattern by
+requiring the artifact to exist *before* the result can be claimed.
 ### Phase 2 — Minimal runtime that hosts the recompiled BIOS
 
 **Goal:** a runtime executable that links the Phase 1 output, calls
@@ -1176,9 +1174,8 @@ If you need to inspect something, build a TCP command for it.
 
 ## Open questions for outside review
 
-This document exists to be read by an external reviewer (ChatGPT or a
-human) and to surface the architectural decisions where outside input
-would help. Specifically:
+This document is self-contained and surfaces the architectural decisions where
+outside input would help. Specifically:
 
 ### Q1. COP0 modeling — how would you do HP1?
 
@@ -1251,7 +1248,7 @@ finer? Or is the per-phase verification (DuckStation diff) enough?
 ```
 F:/Projects/psxrecomp-v4/
 ├── PLAN.md              <-- you are here
-├── CLAUDE.md            in-session rules
+├── DEVELOPMENT.md            in-session rules
 ├── README.md            short summary
 ├── bios/
 │   └── SCPH1001.BIN     524288 bytes, the recompilation target

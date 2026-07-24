@@ -20,7 +20,7 @@ interpretation of overlay code.
 
 ## Distinction from BIOS dirty-RAM
 
-BIOS dirty-RAM (Rule 18 in CLAUDE.md) is code the BIOS *assembles in-place* at boot — e.g. the
+BIOS dirty-RAM (Rule 18 in DEVELOPMENT.md) is code the BIOS *assembles in-place* at boot — e.g. the
 4-instruction SIO handler written to RAM 0xCF0. That code never existed on disc.
 
 Game overlays are different: they are compiled MIPS modules loaded to fixed RAM addresses. Their

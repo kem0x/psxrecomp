@@ -6,7 +6,7 @@ ROM_PATH = "bios/SCPH1001.BIN"
 GEN_PATH = "generated/SCPH1001_full.c"
 ROM_BASE = 0xBFC00000
 
-# Code regions from CLAUDE.md
+# Code regions from DEVELOPMENT.md
 CODE_REGIONS = [
     (0xBFC00000, 0xBFC0DC60),  # kernel 1
     (0xBFC10000, 0xBFC16760),  # kernel 2
