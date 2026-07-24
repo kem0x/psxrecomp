@@ -235,7 +235,7 @@ guessing surface in one pass rather than re-deriving each subsystem.
 
 ## 4. Validation method
 
-Use the two-process harness (CLAUDE.md §16): `psx-runtime` on **port 4500**
+Use the two-process harness (DEVELOPMENT.md §16): `psx-runtime` on **port 4500**
 (this is the Tomba2 build per MEMORY/`build-t2`; generic BIOS build is 4370) and
 `psx-beetle` on **port 4382/4380**. Ring-buffer-first per global rules — never
 arm-then-capture.

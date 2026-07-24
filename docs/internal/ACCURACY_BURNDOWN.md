@@ -32,12 +32,12 @@ presentation bug (present before today's work), not MDEC — its own axis-5 item
   is only GREEN once cross-referenced against a reference (psx-spx / Beetle source
   / DuckStation / a hardware test ROM) AND validated against the oracle at runtime.
   Self-agreement (compiled == our interp) proves backend-equivalence, NOT
-  correctness — both can be identically wrong (CLAUDE.md §15).
+  correctness — both can be identically wrong (DEVELOPMENT.md §15).
 - Don't do it all in one pass. Tomba 2 is the **stomping ground**: validate
   everything we can here, then validate the rest against the other games
   (Tomba 1, MMX6, Ape, BIOS), then merge wt/tomba2 → master, then keep a
   **post-merge burndown** for whatever remains.
-- Governed by CLAUDE.md Rule -1 (faithful core, no hacks, breaking other titles OK).
+- Governed by DEVELOPMENT.md Rule -1 (faithful core, no hacks, breaking other titles OK).
 
 ## Comparative sources (the reference shelf)
 
@@ -201,7 +201,7 @@ bug**, not timing.
 Status: STRONG (most project effort lives here).
 - [ ] Self-modifying / install-at-runtime code (dirty-RAM interp) — ongoing.
 - [ ] Function discovery / dispatch completeness (no missed indirect/jump-table
-  targets) — resolve all dispatch misses each run (Tomba2Recomp CLAUDE.md).
+  targets) — resolve all dispatch misses each run (Tomba2Recomp DEVELOPMENT.md).
 - [ ] Call/return contract + stack fidelity — the blue-screen/wedge class.
 - [ ] Backend equivalence (compiled == interp) — necessary, not sufficient.
 

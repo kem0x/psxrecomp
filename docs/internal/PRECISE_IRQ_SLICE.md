@@ -4,8 +4,7 @@ Status: IN PROGRESS (Phase 1). Branch wt/tomba2. Root cause = interrupt
 take-point granularity (compiled blocks take IRQs only at block edges; HW +
 the dirty-RAM interpreter take them at the exact instruction). Oracle-confirmed
 (Beetle exc_ring caught HW take at epc=0x8008593C, mid-block). Validated with
-ChatGPT (Recomp project, "PSX IRQ Debugging" chat) — design below is the
-agreed plan.
+an independent design review; the design below is the agreed plan.
 
 ## Already in place (committed tip 8ab24c5, live)
 - ABI v8 overlay callback `check_interrupts_at(cpu, resume_pc)`.
@@ -71,7 +70,7 @@ Status/Cause exact, load-delay carried into the handler. Do NOT manufacture a
 block-entry EPC. Every IRQ-affecting write is an unconditional safe-point that
 recomputes pending IRQ before the next instruction.
 
-## Decisions locked with ChatGPT
+## Locked design decisions
 - Reuse the interpreter as the precise sliced executor: SOUND and the better
   first implementation (1823-frame parity proves equivalence). Generated
   "precise sidecars" are only a later perf optimization, never a correctness need.
@@ -97,7 +96,7 @@ recomputes pending IRQ before the next instruction.
 - `exec_one()` is the reusable per-instruction primitive AND it nests jal/jalr inline
   via `psx_dispatch_call` (runs the callee COMPILED). 
 
-### Design decision — RESOLVED via ChatGPT: option (b)
+### Design decision — RESOLVED: option (b)
 Precise-mode CONTINUES THROUGH statically-compiled callees, owned by the event
 deadline, NOT the call boundary. Option (a) [surface at the call, re-arm at the
 callee's first leader] was REJECTED: if the IRQ is actually due deeper inside the
@@ -157,7 +156,7 @@ evidence. The real root cause is the RESUME PC, not the take machinery.
 - A/B isolation (PSX_PRECISE_SLICE env toggle, now permanent in psx_slice_block):
   slice-OFF boots clean past frame 798; slice-ON dies. The slice is the sole cause.
 
-### The fix (ChatGPT-validated, "PSX Static Recompiler Debug" thread 2026-06-26)
+### The fix (design-validated, "PSX Static Recompiler Debug" thread 2026-06-26)
 DECISIVE RECOMMENDATION: make EVERY basic-block leader a re-enterable CPS
 continuation. That is the correct class fix for exact-instruction IRQs in a static
 recompiler. Do NOT route clean compiled text through the dirty-RAM interpreter

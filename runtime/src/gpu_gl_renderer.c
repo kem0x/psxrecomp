@@ -586,7 +586,7 @@ static void up_add_transfer(int x, int y, int w, int h) {
 /* ---- coherency event ring (always-on, debug server "gl_coh_ring") -------- */
 /* Every coherency-relevant operation — upload flushes, fills, copies, draw
  * bboxes, packs, full readbacks, presents, and probe perturbations — is
- * recorded with its rect and frame number. Per CLAUDE.md ring-buffer rule:
+ * recorded with its rect and frame number. Per DEVELOPMENT.md ring-buffer rule:
  * capture is continuous, observers query a window after the fact. Trigger
  * attribution convention: an op that flushes internally (fill/copy/draw/
  * present/peek) records its own event AFTER the FLUSH event it caused, so

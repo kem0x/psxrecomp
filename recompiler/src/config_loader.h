@@ -93,7 +93,7 @@ struct RuntimeConfig {
     bool                  fast_boot = false;
 
     // bios_hle: High-Level Emulation tier for BIOS kernel services
-    // (CLAUDE.md §0 amendment 2026-07-02, the gbarecomp model). DEFAULT ON as of
+    // (DEVELOPMENT.md §0 amendment 2026-07-02, the gbarecomp model). DEFAULT ON as of
     // 2026-07-06 (user-directed player default: instant boot-skip for every
     // game). Opt OUT with [runtime] bios_hle = false or env PSX_BIOS_HLE=0 to run
     // pure LLE (the recompiled BIOS), which REMAINS the reference implementation
@@ -109,7 +109,7 @@ struct RuntimeConfig {
     // hle_scheduler: the HLE tier's standing SUBSYSTEM REPLACEMENT for guest
     // thread switching (deterministic TCB scheduler vs the legacy
     // non-deterministic host-fiber bridge). Default ON under BOTH BIOS
-    // backends (CLAUDE.md §0 amendment 2026-06-29 carve-out); PSX_HLE_SCHEDULER
+    // backends (DEVELOPMENT.md §0 amendment 2026-06-29 carve-out); PSX_HLE_SCHEDULER
     // env wins over this key. Runtime: traps.c psx_hle_scheduler_enabled().
     bool                  hle_scheduler = true;
 

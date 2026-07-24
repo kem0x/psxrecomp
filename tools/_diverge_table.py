@@ -1,4 +1,4 @@
-"""Build the divergence table per ChatGPT's deliverable spec:
+"""Build the requested divergence table:
 event | Beetle PC/target/value/state/input | Recomp PC/target/value/state/input | first divergence
 
 Sources:

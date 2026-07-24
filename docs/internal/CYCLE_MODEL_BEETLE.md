@@ -8,7 +8,7 @@ memory-path wait-state charger) must reproduce. Every number here is transcribed
 These are HARDWARE FACTS (cycle counts), not GPL-protected expression — we
 re-implement the model in our own code, we do not paste Beetle's code.
 
-> Method (CLAUDE.md §15, Rule -1): a number here is only trusted once it has been
+> Method (DEVELOPMENT.md §15, Rule -1): a number here is only trusted once it has been
 > VALIDATED at runtime via the cyc_watch Δ gate (native==Beetle==analytic on a
 > clean ruler). Until then it is a transcription HYPOTHESIS.
 

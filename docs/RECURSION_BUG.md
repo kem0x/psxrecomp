@@ -89,7 +89,7 @@ those overlay/0x80063xxx pages onto the interpreted path in the first place.
 
 ## 2. The reproduction harness ("soaks") — and the regression blocking it
 
-**Workflow.** Run **4 instances** in parallel ("Soak A/B/C/D"). Claude launches
+**Workflow.** Run **4 instances** in parallel ("Soak A/B/C/D"). The workflow launches
 them; the user navigates **2 to a New Game** and **2 into Dwarf Forest** (overworld),
 then lets all four **idle**. Running 4x in parallel is how we hit the intermittent
 freeze fast. Per-instance memcard dirs (`saves_a..d`), **software renderer**, 4:3,
@@ -434,10 +434,10 @@ Earlier parked read of `0x800638C4` showed a clean GTE-loader leaf
 
 ---
 
-## 15. Strategy reset — control-flow flight recorder (session 2 end; ChatGPT-assisted)
+## 15. Strategy reset — control-flow flight recorder (session 2 end)
 
 The oracle RAM-diff of two **separately-navigated** idle emulators was a dead end
-(alignment noise; §14). New plan (external review): **stop diffing RAM; build a
+(alignment noise; §14). New plan: **stop diffing RAM; build a
 triggered control-flow flight recorder on OUR side, find the edge that flips at
 ~frame 50k, then walk a backward causal slice.** Use the oracle only at the END,
 for a small causal address set (not whole-RAM).
@@ -455,8 +455,9 @@ for a small causal address set (not whole-RAM).
   lap**, so 23k laps ≈ **23k guest cycles ≪ ~565k cycles/frame** → **no VBlank
   can fire before overflow** (~40µs guest time). So it is NOT "stuck waiting for a
   late interrupt" (scheduler-starvation-wait); it is a **control-flow cycle** — the
-  per-frame update re-enters itself. => we are in ChatGPT's "branch/target changes
-  abruptly → state/interp control-flow divergence" or "interpreter semantic bug" row.
+  per-frame update re-enters itself. => we are in the "branch/target changes
+  abruptly → state/interp control-flow divergence" or "interpreter semantic bug"
+  row.
 
 **Decision tree (which problem do we have):**
 | Observation | Diagnosis |
@@ -472,7 +473,7 @@ for a small causal address set (not whole-RAM).
 1. **Per-frame frequency + first-occurrence of the re-entry edge** (interp →
    `0x8001A954`) and the jumptable edge (`0x8004630C` → its `jr` target). Is the
    re-entry **ordinary bounded per-frame behavior that stops TERMINATING at ~50k**,
-   or a brand-new edge? (ChatGPT expects at least one is normal rendering behavior.)
+   or a brand-new edge? (At least one may be normal rendering behavior.)
 2. **Last-writer map** on the values controlling those edges (selector `0x8009BCDD`,
    the jump-table entry, `state[0x4a]`, the loop's termination variable): record
    `{pc, frame, cycle, old, new}` per RAM write; when a load feeds the controlling
@@ -592,7 +593,7 @@ end for *fixing* it (kept only as a robustness/observability aid).
 
 ---
 
-## 17. REFRAME — gradual host-stack accumulation, not a "frame-50k trigger" (session 3, 2026-06-17, ChatGPT-assisted via user)
+## 17. REFRAME — gradual host-stack accumulation, not a "frame-50k trigger" (session 3, 2026-06-17)
 
 **The §15 premise is architecturally false, and it was load-bearing.** §15 asserts
 the 23k laps happen *within one frame* "because the host call stack resets to the
@@ -803,7 +804,7 @@ chain, ~1.17 KB), not a growing recursion.
 > 14 min). The native_stack's "§8 chain ×23,073" is ~41,000 LEAKED chains (one/frame;
 > the walker capped at 300k slots), NOT a within-one-frame spiral.**
 
-This is **ChatGPT's Model A, fully confirmed**, and **§7 was right about the leak site**
+This is **Model A, fully confirmed**, and **§7 was right about the leak site**
 (the interp↔compiled boundary). The two mid-session reversals were INSTRUMENT
 ARTIFACTS, both now understood:
 - **§15/§17 "flat → Model W"** was wrong: `stack_profile` sampled `sdl_vblank_present`,
@@ -942,7 +943,7 @@ Ran the oracle disambiguation (only). Both sides traced **in the identical idle 
 `_freeze_specimens/oracle/` (`oracle_chain_filtered.json`, `oracle_state.txt`,
 `recomp_allfn_frame.json`, `recomp_ce_profile.json`).
 
-**Tooling built (CLAUDE.md §15 — the oracle had a real gap).** psxref has **no**
+**Tooling built (DEVELOPMENT.md §15 — the oracle had a real gap).** psxref has **no**
 instruction/PC trace (`emu_step`/`emu_trace_addr` never existed — the handoff/§10 assumed
 them). The right oracle is **`psx-beetle.exe`** (shares the wire protocol; Beetle PSX core
 INTERPRETS, so its always-on `g_psxrecomp_fntrace_cb` records **every J/JAL/JR/JALR**
@@ -999,9 +1000,10 @@ psx_dispatch 0x8001A638  sp=0x801FE3E0   (A954 -> main_loop return; SP restored)
 1. **No guest control-flow divergence.** Targets, RA, delay-slot results and SP are
    bit-identical on both sides. ⇒ Hypothesis **C-as-interp-fabrication is RULED OUT** (the
    interp does NOT mishandle a JAL/JALR/delay-slot/RA; it does not fabricate the re-entry).
-2. **Beetle UNWINDS each invocation; the recomp leaves the chain SUSPENDED** (ChatGPT
-   determination **#1**), because the recomp **maps the guest's nonlocal-but-balanced returns
-   onto accumulating host calls** (determination **#2**). The guest **genuinely returns every
+2. **Beetle UNWINDS each invocation; the recomp leaves the chain SUSPENDED**
+   (determination **#1**), because the recomp **maps the guest's
+   nonlocal-but-balanced returns onto accumulating host calls** (determination
+   **#2**). The guest **genuinely returns every
    frame** (proven by SP on BOTH sides) → this is a **CONTAINED return/unwind-contract bug**,
    **NOT** the §11 continuation-passing redesign.
 3. **The leaking edge is the RETURN path, not the call path.** The boundary crossings that
@@ -1064,8 +1066,9 @@ boundary and never unwind**; making them unwind is the **§11 single-mixed-dispa
 resumable-boundary** work, which spans the interp boundary (`dirty_ram_interp.c`, runtime) AND
 the `psx_dispatch_impl` trampoline (`full_function_emitter.cpp`, **codegen → REGEN**). It is
 delicate (the Bug A/C/D contract area) and regression-prone — the §14 watermark band-aid of
-this already made the wedge "(Not Responding)". This is precisely the change ChatGPT's gate
-flagged to undertake only deliberately. Two real, substantial options (NOT one-liners):
+this already made the wedge "(Not Responding)". This is precisely the change the
+acceptance gate flagged to undertake only deliberately. Two real, substantial
+options (NOT one-liners):
 - **(§11) Boundary resumability / single owner** — the per-frame compiled chain entered from
   the interp must surface tail-transfers/returns to ONE owner trampoline and re-dispatch flat.
   Spans runtime + codegen (regen). Highest fidelity; highest risk.

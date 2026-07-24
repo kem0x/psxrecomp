@@ -142,4 +142,4 @@ This mechanism is explicitly *not* high-level emulation:
 
 We let the BIOS run its own code. The only thing we add is the
 ability for that code to live in dirty RAM rather than ROM. That is
-a property of the program; we accommodate it. See CLAUDE.md Rule 18.
+a property of the program; we accommodate it. See DEVELOPMENT.md Rule 18.

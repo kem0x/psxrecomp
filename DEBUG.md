@@ -146,9 +146,10 @@ Every workaround becomes technical debt that hides the real bug longer.
 
 ---
 
-# TOOL LIFECYCLE RULE (NON-NEGOTIABLE)
+# TOOL LIFECYCLE RULE
 
-Claude builds, launches, and closes ALL tools. The user NEVER gatekeeps this.
+The developer running a diagnostic owns the complete tool lifecycle: build,
+launch, validate, and close every process used by the test.
 
 - Build native: `(cd runtime && cmake --build build)` (with `PATH=/c/msys64/mingw64/bin:$PATH`)
 - Build DuckStation oracle: `bash tools/duckstation/build.sh`
@@ -156,8 +157,7 @@ Claude builds, launches, and closes ALL tools. The user NEVER gatekeeps this.
 - Launch DuckStation oracle: `./duckstation/build/bin/duckstation-qt.exe -bios -nogui -fastboot &`
 - Close / restart: `taskkill //F //IM psx-runtime.exe` or `//IM duckstation-qt.exe`
 
-Do NOT ask the user to launch, close, or restart anything.
-Do NOT tell the user what commands to run — just run them.
+Keep the test reproducible by recording the exact commands and process state.
 
 ### Kill-and-rebuild procedure (Windows)
 

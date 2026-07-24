@@ -117,7 +117,7 @@ isn't reaching it.
 - `tools/arm_gate_trace.py` extended with `[0x7520..0x7524)`,
   `[0x7514..0x7518)`, `[0x7528..0x7538)`, `[0x7258..0x7260)` ranges
 
-### Tooling fix needed (CLAUDE.md Rule 15)
+### Tooling fix needed (DEVELOPMENT.md Rule 15)
 
 `fn_entry_dump` iterates the entire ring (up to 270M entries) before
 applying the addr filter, which **freezes the debug server thread for
@@ -126,11 +126,10 @@ and `handle_fn_exit_dump` in `runtime/src/debug_server.c` need the
 addr filter applied early, plus a `seq_lo/seq_hi` window cap, so a
 filtered query for a small range returns immediately.
 
-### Files with new memories on disk
+### Finding to preserve
 
-- `memory/MEMORY.md` (will be updated next session with the
-  "0x7520 is NOT the divergence — directory-load function never
-  entered" finding)
+- `0x7520` is not the divergence; the directory-load function was never
+  entered.
 
 ### Update 2026-05-03 (continued)
 

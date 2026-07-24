@@ -1,6 +1,6 @@
-﻿/* dirty_ram_interp.h — interpret-on-dispatch for install-at-runtime RAM.
+/* dirty_ram_interp.h — interpret-on-dispatch for install-at-runtime RAM.
  *
- * See CLAUDE.md Rule 18 and docs/dynamic_handler_install.md for the full
+ * See DEVELOPMENT.md Rule 18 and docs/dynamic_handler_install.md for the full
  * rationale.  The PS1 BIOS dynamically writes 4-instruction dispatch stubs
  * into kernel RAM (notably RAM 0xCF0 for the SIO data-byte handler).  A
  * static recompiler can't see those bytes at compile time, so a small MIPS
@@ -174,7 +174,7 @@ extern DirtyRamPcEntry g_dirty_ram_exec_pc_table[DIRTY_RAM_PC_TABLE_SIZE];
  * caller's RA at entry, plus argument context — answers
  * "who tried to JALR into this RAM stub, with what args".
  * Always-on, eviction keeps memory bounded; callers query the window of
- * interest (CLAUDE.md global rule on ring buffers).
+ * interest (DEVELOPMENT.md global rule on ring buffers).
  *
  * Limitation: this captures dispatches into RAM-resident code only. ROM
  * recompiled-C → recompiled-C calls (direct C function calls in

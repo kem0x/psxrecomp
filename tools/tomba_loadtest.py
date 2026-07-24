@@ -12,7 +12,7 @@ Usage: python tomba_loadtest.py <exe> <game.toml> [port]
 """
 import sys, time, subprocess, socket, json
 
-EXE  = sys.argv[1] if len(sys.argv)>1 else r"../TombaRecomp/build-codex-ape-fw/psx-runtime.exe"
+EXE  = sys.argv[1] if len(sys.argv)>1 else r"../TombaRecomp/build/psx-runtime.exe"
 TOML = sys.argv[2] if len(sys.argv)>2 else "game-loadtest.toml"
 PORT = int(sys.argv[3]) if len(sys.argv)>3 else 4470
 BIOS = r"bios/SCPH1001.BIN"

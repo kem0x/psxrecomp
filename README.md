@@ -7,9 +7,6 @@
 Generic static recompiler framework for PlayStation 1: MIPS R3000A to C to
 native x64.
 
-Background on the original prototype:
-[I Built a PS1 Static Recompiler With No Prior Experience (and Claude Code)](https://1379.tech/i-built-a-ps1-static-recompiler-with-no-prior-experience-and-claude-code/)
-
 [![PSXRecomp demo](https://img.youtube.com/vi/CID9oVhgCyY/maxresdefault.jpg)](https://www.youtube.com/watch?v=CID9oVhgCyY)
 
 ## What It Is
@@ -229,7 +226,7 @@ backend), with a small interpreter as the correctness fallback until it is. Full
 story in [`docs/EXECUTION_MODEL.md`](docs/EXECUTION_MODEL.md); component-level
 detail in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
-See [`CONTRIBUTING.md`](CONTRIBUTING.md) and [`CLAUDE.md`](CLAUDE.md) for the
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) and [`DEVELOPMENT.md`](DEVELOPMENT.md) for the
 development rules, and [`docs/internal/`](docs/internal/) for the phased plans
 and deep design notes (`PLAN.md`, `FAITHFUL_TIMING_PLAN.md`, …).
 
@@ -277,8 +274,8 @@ game code) is planned so discoveries can be shared safely in the future.
 
 ## Contributing
 
-Contributions are welcome — AI-assisted or not — as long as they're reviewed,
-tested, and keep the core game-agnostic. A few things hold this project together:
+Contributions are welcome as long as they're reviewed, tested, and keep the core
+game-agnostic. A few things hold this project together:
 the faithful recompiled BIOS is the baseline and oracle, generated code is never
 hand-edited (fix the recompiler and regenerate), and a change proves itself
 against the Beetle oracle / on screen rather than by assertion. Game-specific work
@@ -287,8 +284,7 @@ lives in the game repos, which pin an exact framework commit as a submodule.
 Read [`CONTRIBUTING.md`](CONTRIBUTING.md) before opening a PR — it covers the core
 rules, how to verify a change, the regression checklist across the known games,
 and how a framework fix reaches a game through its pin. Bugs and build problems go
-to GitHub issues (include `gcc -v` / OS / generator for build failures); design
-discussion happens in the **R.A.I.D.** Discord (invite below).
+to GitHub issues (include `gcc -v` / OS / generator for build failures).
 
 ## License
 
@@ -301,13 +297,3 @@ collection. Release executables (and per-game overlay caches) contain
 statically recompiled (machine-translated) builds of the original code,
 the same distribution model used by other static recompilation projects
 such as N64: Recompiled.
-
----
-
-<p align="center">
-  <sub><b>R.A.I.D. — Retro AI Development</b> · a Discord for AI-assisted retro reverse-engineering, decomp &amp; recomp</sub>
-</p>
-
-<p align="center">
-  <a href="https://discord.gg/Ad9BwSzctP"><img src=".github/raid-discord.png" alt="Join the Retro AI Development (R.A.I.D.) Discord" width="200"></a>
-</p>

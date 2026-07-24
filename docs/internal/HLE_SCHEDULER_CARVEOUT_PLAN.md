@@ -1,7 +1,7 @@
 # PSX Cooperative-Thread Scheduler — Deterministic Carve-Out Plan
 
-Status: DRAFT for ChatGPT confer (2026-06-29). Sub-plan of `FAITHFUL_TIMING_PLAN.md`.
-Governed by CLAUDE.md §0 AMENDMENT (LLE-first; faithful HLE subsystem replacement
+Status: DRAFT for design review (2026-06-29). Sub-plan of `FAITHFUL_TIMING_PLAN.md`.
+Governed by DEVELOPMENT.md §0 AMENDMENT (LLE-first; faithful HLE subsystem replacement
 permitted) + recomp-template `PRINCIPLES.md` "LLE Is the Baseline; HLE Is a
 Subsystem Replacement, Not a Starting Point".
 
@@ -82,8 +82,8 @@ for (;;) {
   trampoline + every-block-leader re-entry, the CLASS-B fix) and all guest state is
   in CPUState + guest RAM + the TCB.
 - **Same-thread RFE (`current==target`):** restore the current TCB, set `cpu->pc =
-  EPC`, return into dispatch normally — **never** `cpu->pc = 0`. (This is ChatGPT's
-  earlier fix, now structural rather than a fiber special-case.)
+  EPC`, return into dispatch normally — **never** `cpu->pc = 0`. (This makes the
+  earlier fix structural rather than a fiber special-case.)
 - **No host fibers, no per-thread native stacks, no `cpu->pc=0` sentinel.** Fully
   deterministic: thread selection is a function of guest TCB state only.
 
@@ -124,7 +124,7 @@ we carve the RIGHT thing only after this.)
 
 ## 6. Conformance test (the durable validation)
 
-Cross-process thread/event-stream diff (CLAUDE.md §16 two-process harness): same
+Cross-process thread/event-stream diff (DEVELOPMENT.md §16 two-process harness): same
 boot→checkpoint on `psx-runtime` + `psx-beetle`, capture ChangeThread/RFE/DeliverEvent/
 WaitEvent/TCB-state transitions with guest-cycle+TCB+EPC, assert row-for-row match.
 This is both the carve-out's acceptance test and a permanent regression guard.
@@ -138,7 +138,7 @@ This is both the carve-out's acceptance test and a permanent regression guard.
    regress (Tomba1/Tomba2/BIOS boot) — Rule -1 / pre-merge gates.
 5. Only then: merge; resume Stage-2 cycle-accuracy / enhancement phase.
 
-## 8. Confer questions for ChatGPT
+## 8. Design-review questions
 
 1. Is the unwind+dispatch TCB-scheduler (longjmp to a top-level loop, re-dispatch the
    target EPC, no host fibers) sound given dispatch-based guest control flow + every-
@@ -152,13 +152,13 @@ This is both the carve-out's acceptance test and a permanent regression guard.
    reading 0x801FEB78), or is that gated on a separate cycle-timing (#1) root we must
    confirm first?
 
-## 9. ChatGPT confer result (2026-06-29) — design APPROVED ("A+"), with invariants
+## 9. Design-review result (2026-06-29) — design APPROVED ("A+"), with invariants
 
-ChatGPT endorsed the carve-out: **remove the host-fiber bridge, keep the BIOS
-event/thread semantics LLE.** "The non-determinism is not the BIOS contract; it is
-your bridge layered on top of it." Choice: **A+ (not full B)** — replace the bridge
-only; keep BIOS ExceptionHandler / IntRP callback queues / Open-Enable-Deliver-Wait
-event semantics / TCB save-restore layout as LLE.
+The reviewed carve-out is: **remove the host-fiber bridge, keep the BIOS
+event/thread semantics LLE.** The non-determinism is in the bridge, not the BIOS
+contract. Choice: **A+ (not full B)** — replace the bridge only; keep BIOS
+ExceptionHandler / IntRP callback queues / Open-Enable-Deliver-Wait event
+semantics / TCB save-restore layout as LLE.
 
 **The one invariant the design lives or dies on:** guest thread context lives ONLY in
 `CPUState` / RAM / TCB reg array — NEVER in a host fiber stack, generated **C locals**,
@@ -213,7 +213,7 @@ confirms the first divergence is scheduler-induced. The "273 frames early" could
 separate producer/timing root that the scheduler swap would leave behind. ⇒ §5
 diagnosis gate stays FIRST.
 
-### Minimal implementation plan (ChatGPT, 8 steps)
+### Minimal implementation plan (8 steps)
 1. Add `scheduler_jmpbuf` + `psx_sched_escape_t`.
 2. Replace `psx_change_thread_fiber` with `psx_request_thread_switch(target_tcb, resume_pc)`.
 3. `psx_request_thread_switch` saves current TCB + longjmps to scheduler with YIELD_TO_TCB.
@@ -247,7 +247,7 @@ diagnosis gate stays FIRST.
   regen), no behavior change.
 - ✅ **Steps 2-8 (MINIMAL "A+") IMPLEMENTED + structurally validated** (2026-06-29,
   runtime-only, UNCOMMITTED). Scope refined from the broad 8-step list to the minimal
-  bridge replacement ChatGPT endorsed: the Beetle-confirmed non-determinism lives ONLY
+  bridge replacement: the Beetle-confirmed non-determinism lives ONLY
   in the `!in_exception` host-fiber bridge; the in-exception RFE path already escapes via
   `exception_jmpbuf` (no fibers) and was left intact. Implemented:
   - `psx_scheduler_run` (traps.c) — outer trampoline wrapping the top-level psx_dispatch
@@ -265,7 +265,7 @@ diagnosis gate stays FIRST.
   - **VALIDATED LIVE (HLE)**: thread1 trace now shows ONLY kinds 3/8/20/1/2 (new
     TCB-switch path, 50× cross-thread commits) and ZERO fiber kinds 10/11/13 — the
     per-frame fiber recreate is ELIMINATED. Builds clean (no -Werror).
-- ⛔ **Freeze NOT resolved — separate UPSTREAM root confirmed** (ChatGPT Q5 caution
+- ⛔ **Freeze NOT resolved — separate UPSTREAM root confirmed** (Q5 caution
   realized). HLE build reaches the IDENTICAL pre-freeze state (gp0_draw frozen at 337079)
   and wedges on the SAME `0x800CD3F8` dispatch miss, now a tight loop (~4000/s; render
   thread stuck, gp0_writes still advancing + audio plays ⇒ black screen + music). The

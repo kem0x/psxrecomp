@@ -7,7 +7,7 @@
  * divergence between the two timelines — not a frame diff (PRINCIPLES.md "find
  * the first divergence" + "is the value WRONG or is the behavior MISSING").
  *
- * Model (CLAUDE.md ring-buffer doctrine): armed from boot (so the pre-divergence
+ * Model (DEVELOPMENT.md ring-buffer doctrine): armed from boot (so the pre-divergence
  * window is always covered — never arm-then-time), records one row per relevant
  * control event while current_tcb == watched_tcb (or all TCBs if watched==0),
  * and LATCHES (freezes) the moment a configured trigger target is dispatched, so

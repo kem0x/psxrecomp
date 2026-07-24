@@ -2,7 +2,7 @@
 
 **Status:** Phase B (design + first iteration), 2026-04-30.
 **File on disk:** `generated/address_aliases.json`.
-**Authority:** `PLAN.md:941-967` ("BIOS Relocation Is a Hard Gate"), `CLAUDE.md:333-365` (Rule 18).
+**Authority:** `PLAN.md:941-967` ("BIOS Relocation Is a Hard Gate"), `DEVELOPMENT.md:333-365` (Rule 18).
 **Companion files:** `generated/normalization_rule.md`, `generated/relocation_proofs/<name>/`.
 
 ---

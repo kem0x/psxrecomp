@@ -1,9 +1,7 @@
 # Faithful Timing Core — Game Plan (psxrecomp)
 
-**READ THIS EACH SESSION.** Referenced from CLAUDE.md Rule -1 and from the
-auto-memory ([[psxrecomp-build-faithful-core-not-hacks]],
-[[precise_irq_slice_state]]). This is the authoritative plan; update the
-"Status / Log" section every session.
+**READ THIS EACH SESSION.** Referenced from DEVELOPMENT.md Rule -1. This is the
+authoritative plan; update the "Status / Log" section every session.
 
 ---
 
@@ -21,9 +19,8 @@ recompiler is being BUILT, not preserved:
   recompiler/runtime and regenerate; never edit `generated/*.c`.
 - Don't guess (PRINCIPLES). Confirm every mechanism with the oracle + rings
   BEFORE changing code. Build observability first.
-- Confer with ChatGPT via the **Chrome MCP browser at chatgpt.com** — the
-  existing "PSX Static Recompiler Debug" chat (the user has Plus logged in).
-  NOT the `codex` CLI (usage-limited).
+- Request an independent design review for high-risk timing changes. Record the
+  reviewed assumptions and evidence in this repository.
 
 ## 1. The problem (diagnosis, confirmed)
 
@@ -53,7 +50,7 @@ Tomba 2 (SCUS-94454) logo→FMV stall is the canonical case. The cascade:
 
 ## 2. The target architecture (what "faithful core" means)
 
-Per ChatGPT (validated) + standard practice:
+Validated model and standard practice:
 - ONE shared **per-instruction cycle-cost function** `psx_instr_base_cycles(pc,
   insn)` used by BOTH the dirty-interp and the recompiler. No two approximate
   models.
@@ -243,7 +240,7 @@ on a fixed region -> next.
   first-attract captures at 4:3/16:9/21:9, and zero unknown dispatches.
 
 - **2026-07-02 (HLE PIVOT implemented — HLE as a first-class swappable tier, gbarecomp model):**
-  USER-DIRECTED pivot (supersedes "no HLE" §0; CLAUDE.md amended 2026-07-02, memory
+  USER-DIRECTED pivot (supersedes "no HLE" §0; DEVELOPMENT.md amended 2026-07-02, memory
   hle_tier_architecture.md). Built the full stack this session: (1) EMITTER —
   full_function_emitter.cpp now emits a null-by-default `g_psx_bios_hle_hook` consult at
   the top of every psx_dispatch_impl iteration (pre-normalize phys, BEFORE the game/
@@ -656,9 +653,9 @@ on a fixed region -> next.
   equivalent, NOT yet hardware-accurate). Apply the same delay-slot fix to the
   BIOS emitter (full_function_emitter.cpp) and overlay/alias paths.
 - **2026-06-26 (earlier):** Diagnosis corrected (timing-faithfulness, not take-point).
-  Directive persisted (CLAUDE.md Rule -1, memory, MEMORY.md banner). Precise
-  slicing root-caused (mid-function clean-text resume not dispatchable) + ChatGPT-
-  validated fix (all block leaders = CPS continuations) — PARKED default-off;
+  Directive persisted (DEVELOPMENT.md Rule -1). Precise slicing root-caused
+  (mid-function clean-text resume not dispatchable) with a validated fix (all
+  block leaders = CPS continuations) — PARKED default-off;
   `psx_game_is_function_entry` predicate + slice-trace diagnostics + env toggle
   `PSX_PRECISE_SLICE` left in tree (inert). −8 mechanism located in
   code_generator.cpp (delay-slot-is-leader undercount). Tree builds + boots clean.

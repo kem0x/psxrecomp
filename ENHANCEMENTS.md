@@ -1,6 +1,6 @@
 # PSXRecomp — Enhancement-Tier Work (framework-wide)
 
-Faithfulness is the foundation (CLAUDE.md Rule -1); this file tracks the
+Faithfulness is the foundation (DEVELOPMENT.md Rule -1); this file tracks the
 enhancement layer built on top of it: renderers beyond the software reference,
 widescreen, load acceleration, etc. Per-game enhancement ideas live in each
 game repo's ENHANCEMENTS.md. Active framework bugs referenced here live in the

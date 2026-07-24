@@ -594,7 +594,7 @@ the real game (these correct/extend §2, which was written pre-implementation):
   composed during a load transition and displayed only in **interactive tutorial
   mode**; a full on-screen visual pass needs menu navigation to that mode (and,
   for the HUD/menu, the per-glyph hook above). Debug-server `screenshot` is
-  flaky after extended headless runs — a tooling bug to fix (CLAUDE.md rule 15).
+  flaky after extended headless runs — a tooling bug to fix (DEVELOPMENT.md rule 15).
 
 **Coverage status (138 entries shipped):** the full in-EXE message table was
 statically enumerated — pointer table at **0x80071474** plus the block

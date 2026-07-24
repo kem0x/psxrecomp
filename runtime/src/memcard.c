@@ -7,7 +7,7 @@
  * Pure hardware simulation. No BIOS state, no HLE, no stubs.
  *
  * Ported from v3 with audit:
- *   - Removed all fprintf (CLAUDE.md rule #3)
+ *   - Removed all fprintf (DEVELOPMENT.md rule #3)
  *   - No BIOS manipulation found (clean)
  *   - No fake events found (clean)
  */

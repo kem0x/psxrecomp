@@ -39,7 +39,7 @@ static int         s_state_n;
 
 static uint64_t    s_enq, s_done, s_failed;
 
-/* Always-on recent-compile ring (CLAUDE.md ring-buffer doctrine): every compile,
+/* Always-on recent-compile ring (DEVELOPMENT.md ring-buffer doctrine): every compile,
  * success or decline, lands here so a probe can QUERY what the worker did in the
  * window of interest rather than time-and-capture. Guarded by s_mtx. */
 #define EVT_CAP 64
