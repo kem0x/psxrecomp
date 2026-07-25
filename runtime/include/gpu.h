@@ -173,8 +173,9 @@ void gpu_ws_set_auto_hooks(int cull_on, int backdrop_on);
 int  psx_ws_auto_cull_on(void);
 /* GTE-activity gameplay detector ([widescreen] gte_game_mode) for 3D titles
  * with no sprite-tag helper: gte.cpp notes every RTPS/RTPT projection; a frame
- * that projects enough vertices is stamped as gameplay. */
-void gpu_ws_set_gte_game_mode(int on);
+ * that projects enough vertices is stamped as gameplay. The per-game
+ * hysteresis keeps widescreen engaged through projection-free gameplay gaps. */
+void gpu_ws_set_gte_game_mode(int on, uint32_t hysteresis_frames);
 void psx_ws_note_gte_project(int nverts);
 /* Native-wide HUD corner re-anchoring ([widescreen] nw_hud_corners): push
  * outer-third screen-space HUD primitives out to the true wide-frame corners
@@ -266,6 +267,8 @@ typedef struct {
     uint32_t last_tag_frame;    /* frame of newest tagged prim */
     uint32_t last_3d_frame;     /* frame of newest shaded prim (diagnostic) */
     uint32_t gte_verts;         /* RTPS/RTPT verts in the last completed frame */
+    uint32_t gte_age;           /* frames since the last gameplay GTE stamp */
+    uint32_t gte_hysteresis;    /* configured GTE gameplay hold in frames */
     uint32_t last_world3d_frame;/* newest SUSTAINED world-scale projection frame */
     uint32_t ovh_prims;         /* overhanging polys in the last completed frame */
     uint32_t last_ovh_frame;    /* newest SUSTAINED polygon-overhang frame (the

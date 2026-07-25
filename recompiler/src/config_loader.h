@@ -508,6 +508,13 @@ struct GameConfig {
     // pillarbox 4:3. Runtime-only — no regen required. Off by default.
     bool ws_gte_game_mode = false;
 
+    // [widescreen] gte_game_mode_hysteresis — number of consecutive frames
+    // without a qualifying GTE projection before gameplay is allowed to fall
+    // back to the 4:3 full-2D presentation path. Defaults to 45 (~0.75 s at
+    // 60 Hz); games with longer projection-free camera/fall sequences can
+    // override it. Runtime-only — no regen required.
+    uint32_t ws_gte_game_mode_hysteresis = 45;
+
     // [widescreen] native_wide — select the newer wide render-target path.
     // Defaults on for compatibility. Titles can keep the original GTE-squash
     // + stretched-present path when native-wide is not regression-free.

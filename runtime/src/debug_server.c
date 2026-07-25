@@ -4598,7 +4598,8 @@ static void handle_gpu_state(int id, const char *json)
              "\"present_native_43\":%d,\"x_margin\":%d,\"squash\":[%d,%d],"
              "\"mode\":%d,\"nw_extra\":%d,"
              "\"cur_frame\":%llu,\"last_tag_frame\":%u,\"last_3d_frame\":%u,"
-             "\"gte_verts\":%u,\"last_world3d_frame\":%u,"
+             "\"gte_verts\":%u,\"gte_age\":%u,\"gte_hysteresis\":%u,"
+             "\"last_world3d_frame\":%u,"
              "\"ovh_prims\":%u,\"last_ovh_frame\":%u}}",
              id, di.display_x, di.display_y,
              di.width, di.height,
@@ -4615,7 +4616,8 @@ static void handle_gpu_state(int id, const char *json)
              ws.present_native_43, ws.x_margin, ws.xnum, ws.xden,
              ws.mode, ws.nw_extra,
              (unsigned long long)ws.cur_frame, ws.last_tag_frame,
-             ws.last_3d_frame, ws.gte_verts, ws.last_world3d_frame,
+             ws.last_3d_frame, ws.gte_verts, ws.gte_age, ws.gte_hysteresis,
+             ws.last_world3d_frame,
              ws.ovh_prims, ws.last_ovh_frame);
 }
 

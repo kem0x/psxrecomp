@@ -3419,8 +3419,10 @@ int main(int argc, char** argv) {
                                   gc.ws_bg2d_layer_count,
                                   gc.ws_bg2d_layer_struct_stride,
                                   gc.ws_bg2d_packet_cap);
-            /* [widescreen] gte_game_mode — 3D-title gameplay detector (Ape). */
-            gpu_ws_set_gte_game_mode(gc.ws_gte_game_mode ? 1 : 0);
+            /* [widescreen] GTE gameplay detector and per-title hold time. */
+            gpu_ws_set_gte_game_mode(
+                gc.ws_gte_game_mode ? 1 : 0,
+                gc.ws_gte_game_mode_hysteresis);
             /* Keep titles with known native-wide regressions on the original
              * projection-squash + stretched-present widescreen path. */
             g_ws_native_wide = gc.ws_native_wide ? 1 : 0;

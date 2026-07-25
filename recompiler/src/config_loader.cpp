@@ -703,6 +703,7 @@ GameConfig load_game_config(const fs::path& config_path_in) {
     bool ws_hud_sprt_squash = false;
     bool ws_full_2d = false;
     bool ws_gte_game_mode = false;
+    uint32_t ws_gte_game_mode_hysteresis = 45;
     bool ws_native_wide = true;
     bool ws_nw_hud_corners = false;
     uint32_t ws_nw_left_hud_packet_lo = 0;
@@ -736,6 +737,16 @@ GameConfig load_game_config(const fs::path& config_path_in) {
             ws_full_2d = toml::find<bool>(ws, "full_2d");
         if (ws.contains("gte_game_mode"))
             ws_gte_game_mode = toml::find<bool>(ws, "gte_game_mode");
+        if (ws.contains("gte_game_mode_hysteresis")) {
+            const auto frames =
+                toml::find<int64_t>(ws, "gte_game_mode_hysteresis");
+            if (frames < 1 || frames > 3600)
+                throw std::runtime_error(fmt::format(
+                    "{}: [widescreen] gte_game_mode_hysteresis out of range "
+                    "(1..3600 frames): {}",
+                    config_path.string(), frames));
+            ws_gte_game_mode_hysteresis = static_cast<uint32_t>(frames);
+        }
         if (ws.contains("native_wide"))
             ws_native_wide = toml::find<bool>(ws, "native_wide");
         if (ws.contains("nw_hud_corners"))
@@ -947,6 +958,7 @@ GameConfig load_game_config(const fs::path& config_path_in) {
         /*ws_auto_backdrop_preload*/ ws_auto_backdrop_preload,
         /*ws_full_2d*/            ws_full_2d,
         /*ws_gte_game_mode*/      ws_gte_game_mode,
+        /*ws_gte_game_mode_hysteresis*/ ws_gte_game_mode_hysteresis,
         /*ws_native_wide*/        ws_native_wide,
         /*ws_nw_hud_corners*/     ws_nw_hud_corners,
         /*ws_nw_left_hud_packet_lo*/ ws_nw_left_hud_packet_lo,

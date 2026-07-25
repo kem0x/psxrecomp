@@ -132,16 +132,19 @@ static int      ws_gte_game_mode_cfg = 0;
 static uint32_t ws_gte_frame = (uint32_t)-1;
 static uint32_t ws_gte_count = 0;
 static uint32_t ws_last_gte_stamp = (uint32_t)-1000;
+static uint32_t ws_gte_game_mode_hysteresis = 45u;
 /* Any frame that projects a handful of vertices is "3D" (a low threshold so a
  * sparse close-up cutscene frame still counts — the flicker was frames dipping
  * below a high 16-vert bar and pillarboxing for a frame or two). */
 #define WS_GTE_GAME_MODE_MIN_VERTS 3u
-/* STICKY: stay in native-wide for ~0.75s after the last 3D frame, so brief
- * low-poly frames in a real-time 3D cutscene never flip to a 4:3 pillarbox (the
- * intro-cutscene flicker). Only a genuine full-2D screen — no GTE projection for
- * this many consecutive frames (save/options/memory-card) — reverts to 4:3. */
-#define WS_GTE_GAME_MODE_HYSTERESIS 45u
-void gpu_ws_set_gte_game_mode(int on) { ws_gte_game_mode_cfg = on ? 1 : 0; }
+/* STICKY: stay wide after the last 3D frame, so brief low-poly or intentionally
+ * projection-free gameplay sequences never flip to a 4:3 pillarbox. The
+ * default remains 45 frames (~0.75 s), while a title may raise the value for a
+ * longer camera/fall sequence. */
+void gpu_ws_set_gte_game_mode(int on, uint32_t hysteresis_frames) {
+    ws_gte_game_mode_cfg = on ? 1 : 0;
+    ws_gte_game_mode_hysteresis = hysteresis_frames ? hysteresis_frames : 45u;
+}
 
 /* World-scale 3D signal for the 2D-only-scene classifier (sprite-tag titles).
  * Shaded-prim presence proved to be a FALSE world signal: task-clear /
@@ -210,7 +213,8 @@ static int ws_full_2d_mode(void) {
 static int ws_game_mode(void) {
     if (ws_full_2d_mode()) return 1;
     if (ws_gte_game_mode_cfg &&
-        (uint32_t)s_frame_count - ws_last_gte_stamp <= WS_GTE_GAME_MODE_HYSTERESIS) return 1;
+        (uint32_t)s_frame_count - ws_last_gte_stamp <=
+            ws_gte_game_mode_hysteresis) return 1;
     return (uint32_t)s_frame_count - ws_last_tag_stamp <= 2;
 }
 
@@ -1098,6 +1102,8 @@ void gpu_ws_get_debug(GpuWsDebug* out) {
     out->last_tag_frame    = ws_last_tag_stamp;
     out->last_3d_frame     = ws_last_3d_stamp;
     out->gte_verts         = ws_gte_prev_verts;
+    out->gte_age           = (uint32_t)s_frame_count - ws_last_gte_stamp;
+    out->gte_hysteresis    = ws_gte_game_mode_hysteresis;
     out->last_world3d_frame = ws_sust_world3d_stamp;
     out->ovh_prims         = ws_ovh_prev;
     out->last_ovh_frame    = ws_sust_ovh_stamp;
